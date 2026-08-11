@@ -1512,9 +1512,10 @@ function ModuleDock:Settings()
 		if not  debounce then   
 		debounce = true 
 		
-		Library:CloseAllActives()
+			Library:CloseAllActives()
+			if bool then 
 		Library.Actives[#Library.Actives +1] = AntiClick
-
+end
 		AntiClick.Visible = bool
 		Settings.Opened = bool 
 
@@ -1576,4 +1577,35 @@ function ModuleDock:Button(Data)
 
 	return setmetatable(Button,Library.ModuleDock)
 end
-return Library
+-- if you wonder why a certain module is not saving is due to not having Flag in them, if you want them to save, add Flag in the module table, {Flag = <string>}
+-- All module properties can be uppercase or lowercase 
+
+do 
+	local NewWindow = Library:Window({Title = "Qw hub", Game = "Multicrew Tank Combat"})
+	local NewVisualstab = NewWindow:Tab({Image = "rbxassetid://15964021599",Subtabs=true})
+	local Playersesptab = NewVisualstab:Subtab({Title = "Players",Image="rbxassetid://15150178302"})
+	local WorldPage = NewVisualstab:Subtab({Title = "World",Image="rbxassetid://15964021599"})
+
+	local Playerespgroupbox = Playersesptab:Section({Group = true,Side = "Right"})
+	local SelfSectionPage = Playerespgroupbox:Section_Page({Title = "Self"})
+
+	Playerespgroupbox:Section_Page({Title = "Hostile"})
+	Playerespgroupbox:Section_Page({Title = "Friendly"})
+
+	local NewCombatTab = NewWindow:Tab({Image = "rbxassetid://136879043989014"})
+	local NewSettingsTab = NewWindow:Tab({Image = "rbxassetid://72732892493295"})
+	local MainSection = NewCombatTab:Section({Title = "Main", Group = false,Side = "Left"})
+	local TestToggle = MainSection:Toggle({Title = "E"})
+	local settingstest= TestToggle:Settings()
+	settingstest:Toggle({Title = "EXTRA TOGGLE IN A TOGGLE?"})
+	local UnloadButton = MainSection:Button({Title ="Unload",Callback = function()
+		NewWindow:SelfDestruct()
+	end,})
+	
+	UnloadButton:Button({Title="Test",Callback=function()
+		TestToggle:DirectTo()
+	end,})
+
+
+
+end
