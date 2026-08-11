@@ -7,6 +7,7 @@ Do not sell this UI or claim it as yours. This UI is free to use for anyone and 
 there is no need to feel ashamed to learn or copy code from here, I tried my best to explain 
 some of my code to make it easier to understand. 
 
+
 ]]
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -43,7 +44,7 @@ local Library = {
 		["Backspace"] = "BSP",
 		["BackSlash"] = "BS"
 	},
-	Elementsopened = {},
+	Actives = {},
 	InstanceStorage = {},
 	WhitelistedMouse = {
 		Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,
@@ -85,7 +86,6 @@ local Library = {
 	ZIndex = 3,
 	Device = "Desktop", --> "Desktop" or "Mobile"
 }
---> Drag does not work for mobile <--
 if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
 	Library.Device = "Mobile" 
 	print("Mobile")
@@ -93,6 +93,8 @@ else
 	Library.Device = "Desktop"
 	print("Desktop")
 end
+
+
 
 --> stores RBXSCRIPTSIGNAl to disconnect them once the UI is unloaded to prevent memory leaks<--
 function Library:storeEvent(Event: RBXScriptSignal, thread: thread)
@@ -114,14 +116,14 @@ function Library:MakeDraggable(Dragger , Object, OnChange, OnEnd)
 	local Position, StartPosition = nil, nil
 
 	Library:storeEvent(Dragger.InputBegan,function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1  then
+		if Input.UserInputType == Enum.UserInputType.Touch or  Input.UserInputType == Enum.UserInputType.MouseButton1  then
 			Position = UserInputService:GetMouseLocation()
 			StartPosition = Object.AbsolutePosition
 		end
 	end)
 	Library:storeEvent(UserInputService.InputChanged,function(Input)
-		if StartPosition and Input.UserInputType ==
-			Enum.UserInputType.MouseMovement then
+		if StartPosition and (Input.UserInputType ==
+			Enum.UserInputType.MouseMovement  or Input.UserInputType == Enum.UserInputType.Touch) then
 			local Mouse =UserInputService:GetMouseLocation()
 			local Delta = Mouse - Position
 			Position = Mouse
@@ -131,7 +133,7 @@ function Library:MakeDraggable(Dragger , Object, OnChange, OnEnd)
 		end
 	end)
 	Library:storeEvent(Dragger.InputEnded,function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if Input.UserInputType == Enum.UserInputType.Touch or Input.UserInputType == Enum.UserInputType.MouseButton1 then
 			if OnEnd then
 				OnEnd(Object.Position, StartPosition)
 			end
@@ -146,7 +148,7 @@ function Library:ToRGB(color: Color3)
 	return math.floor(color.R*255), math.floor(color.G*255), math.floor(color.B*255) 
 end
 
---> I use this to change the Object theme whenever i change the color, for example, tab Active = active theme, Tab inactive = inactive theme, this is so when you change the theme of the UI, the frame won't change from the raw theme and instead adapt  <--
+--> this is to like automatically adapt to a new theme that a object does so whenever like a toggle is toggled and i change it to accent and text to light text than i will update it so when you change theme it wont change the toggle main color 
 function Library:UpdateObject(Object, Property, Value)
 	if not self.InstanceStorage[Object] then
 		self.InstanceStorage[Object] = {[Property] = Value}
@@ -158,7 +160,7 @@ end
 
 
 --> Makes new frames <--
-function Library:Render(ObjectType: string, Properties: table) 
+function Library:Render(ObjectType: string, Properties) 
 	local Passed, Statement = pcall(function()
 		local Object = Instance.new(ObjectType)
 		for Property, Value in pairs(Properties) do
@@ -218,7 +220,7 @@ function Library:ListConfigFiles()
 	-- List the config files, remove the directory string and isolate the file name 
 end
 
-function Library:NewConfig(Title,Description)
+function Library:NewConfig(Title:string,Description:string,Author:string)
 	if isfolder(self.Folder) then makefolder(self.Folder) end
 	for _, Element in pairs(Library.Elements) do 
 		if Element.Flag and Element.Flag ~= ""   then 
@@ -229,7 +231,22 @@ end
 function Library:LoadConfig()
 	-- Grab data from config file by decoding it and load the modules settings and when it comes to multi dropdown, keybind, and colorpicker i have to specifically decode them and load them different than usual because the values are different for some reason 
 end
+function Library:CloseAllActives()
+	for _,Actives in pairs(Library.Actives) do 
+		if Actives.Visible then
+			Actives.Visible = false
+			table.clear(Library.Actives)
+		end
+	end
+end
 
+function Library:IsHovered(Object:Instance)
+	if Mouse.X >= Object.AbsolutePosition.X and Mouse.X <= Object.AbsolutePosition.X + Object.AbsoluteSize.X  and Mouse.Y >= Object.AbsolutePosition.Y and Mouse.Y <= Object.AbsolutePosition.Y + Object.AbsoluteSize.Y then 
+		return true
+	else 
+		return false
+	end
+end
 function Library:ChangeFont(Font: Enum.Font? | string?) --> this part is not done and has not been tested yet <--
 	for Index, Value in pairs(self.InstanceStorage) do
 		if Value:IsA("FontFace") then
@@ -247,17 +264,12 @@ Library.UI_Create ={
 		local ScreenGui = Library:Render("ScreenGui", {ZIndexBehavior = Enum.ZIndexBehavior.Global, ResetOnSpawn = false}) 
 		local UIScale = Library:Render("UIScale", {Parent = ScreenGui})
 
-		UIScale.Scale = camera.ViewportSize.X /  1440	
-
-		Library:storeEvent(camera:GetPropertyChangedSignal('ViewportSize'),function()
-			UIScale.Scale = camera.ViewportSize.X /  1440
-		end)
-
 
 		local WindowHeader = Library:Render("Frame", {  
 			Size = UDim2.new(0, 356, 0, 80),
 			Name = "WindowHeader",
-			Position = UDim2.new(0.33260834217071533, 0, 0.0059523810632526875, 0),
+			
+			Position = UDim2.new(0.33260834217071533, 0, 0, 5),
 			BorderSizePixel = 0,
 			ZIndex = Library.ZIndex,
 			BackgroundColor3 = "DarkContrast",
@@ -512,7 +524,6 @@ Library.UI_Create ={
 			Parent = Tabbuton 
 		}) 
 
-
 		return Tabbuton
 	end,
 	NewWindowPage = function()
@@ -618,6 +629,7 @@ Library.UI_Create ={
 			AnchorPoint = Vector2.new(0.5, 0),
 			Name = "Pages",
 			BackgroundTransparency = 1,
+			ClipsDescendants  = true,
 			Position = UDim2.new(0.5, 0, 0, 28),
 			Size = UDim2.new(1, -39, 1, -28),
 			ZIndex = Library.ZIndex,
@@ -680,7 +692,11 @@ Library.UI_Create ={
 			Size = UDim2.new(0, 0, 1, 0),
 		}) 
 
-
+		local UISizeConstraint = Library:Render("UISizeConstraint", {  
+			MinSize = Vector2.new(18, 0),
+			MaxSize = Vector2.new(10, 10),
+			Parent = Subtab
+		}) 
 		Library:Render("ImageLabel", {  
 			ScaleType = Enum.ScaleType.Fit,
 			ZIndex = Library.ZIndex,
@@ -798,7 +814,7 @@ Library.UI_Create ={
 			Size = UDim2.new(1, 0, 0, 28),
 			BackgroundTransparency = 1,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			Position = UDim2.new(0, 11, 0, 0),
+			Position = UDim2.new(0, 0, 0, 0),
 			ZIndex = Library.ZIndex,
 			TextSize = 12,
 			Parent = SectionHeaderFrame 
@@ -822,11 +838,14 @@ Library.UI_Create ={
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = SectionFrame 
 		}) 
-		 Library:Render("UIPadding", {  
+		Library:Render("UIPadding", {  
 			PaddingBottom = UDim.new(0, 11),
+			PaddingRight = UDim.new(0, 11),
+			PaddingLeft = UDim.new(0, 11),
 			Parent = SectionFrame 
 		}) 
-		 Library:Render("UIStroke", {  
+
+		Library:Render("UIStroke", {  
 			Color = "OuterStroke",
 			Parent = SectionFrame 
 		}) 
@@ -938,10 +957,214 @@ Library.UI_Create ={
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = page 
 		}) 
-
+		local UIPadding = Library:Render("UIPadding", {  
+			PaddingRight = UDim.new(0, 11),
+			PaddingLeft = UDim.new(0, 11),
+			Parent = page
+		}) 
 		return Sectiontab,page
 	end,
+	NewWidgetContainer = function()
+		local ToggleWidgetButton = Library:Render("ImageButton", {  
+			Name = "ToggleWidgetButton",
+			Size = UDim2.new(0, 15, 0, 15),
+			ImageColor3 = "Inactive",
+			Image = "rbxassetid://72732892493295",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 0, 0.5, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		local NoclickDetector = Library:Render("TextButton", {  
+			Name = "NoclickDetector",
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 10, 0, 0),
+			Size = UDim2.new(0, 0, 0, 0),
+			ZIndex = Library.ZIndex,
+			TextSize = 14,
+			Visible = false,
+		}) 
+		local ModulesContainer = Library:Render("ScrollingFrame", {  
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			ScrollBarThickness = 0,
+			BackgroundColor3 = "LightContrast",
+			Name = "ModulesContainer",
+			ScrollingDirection = Enum.ScrollingDirection.Y,
+			Size = UDim2.new(1, 0, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			CanvasSize = UDim2.new(0, 0, 0, 0),
+			Parent = NoclickDetector 
+		}) 
+		Library:Render("UICorner", {  
+			Parent = ModulesContainer 
+		}) 
+		Library:Render("UIStroke", {  
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = ModulesContainer 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = ModulesContainer 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingTop = UDim.new(0, 12),
+			PaddingRight = UDim.new(0, 11),
+			PaddingLeft = UDim.new(0, 11),
+			Parent = ModulesContainer 
+		}) 
+		Library:Render("UIListLayout", {  
+			Padding = UDim.new(0, 7),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = ModulesContainer 
+		}) 
+		return ToggleWidgetButton,NoclickDetector
+	end,
+	NewButtonContainer = function()
+		local ButtonsContainer = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 0, 22),
+			BackgroundTransparency = 1,
+			Name = "ButtonsContainer",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+
+
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalFlex = Enum.UIFlexAlignment.Fill,
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = ButtonsContainer 
+		}) 
+		return ButtonsContainer
+	end,
+	NewButton = function()
+		local Button = Library:Render("TextButton", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "LightText",
+			Name = "Button",
+			BorderSizePixel = 0,
+			ZIndex = Library.ZIndex,
+			BackgroundColor3 = "LightContrast",
+			TextSize = 12,
+			Size = UDim2.new(0, 0, 1, 0),
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = Button 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = Button 
+		}) 
+		Library:Render("UIStroke", {  
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = Button 
+		}) 
+		return Button
+	end,
+	NewToggle = function()
+		local ToggleContainer = Library:Render("TextButton", {  
+			Size = UDim2.new(1, 0, 0, 15),
+			BackgroundTransparency = 1,
+			Text = "",
+			Name = "ToggleContainer",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		local Checkbox = Library:Render("Frame", {  
+			AnchorPoint = Vector2.new(0, 0.5),
+			Name = "Checkbox",
+			Position = UDim2.new(0, 0, 0.5, 0),
+			ZIndex = Library.ZIndex,
+			BackgroundColor3="DarkContrast",
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 15, 0, 15),
+			Parent = ToggleContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = Checkbox 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = Checkbox 
+		}) 
+		Library:Render("ImageLabel", {  
+			ImageTransparency = 0,
+			Name = "Checkmark",
+			Image = "rbxassetid://85862941581996",
+			BackgroundTransparency = 1,
+			Size = UDim2.new(0, 0, 0, 0),
+			ImageColor3 = "Active",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Parent = Checkbox 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			Parent = Checkbox 
+		}) 
+		Library:Render("UIGradient", {  
+			Rotation = -99,
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+			},
+			Parent = Checkbox 
+		}) 
+
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "DarkText",
+			Name = "ToggleTitle",
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 100, 1, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Position = UDim2.new(0, 23, 0, 0),
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = ToggleContainer 
+		}) 
+		local ToggleExtraModuletContainer = Library:Render("Frame", {  
+			AnchorPoint = Vector2.new(1, 0),
+			Name = "ToggleExtraModuletContainer",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 0, 0, 0),
+			Size = UDim2.new(0, 100, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Parent = ToggleContainer 
+		}) 
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = ToggleExtraModuletContainer 
+		}) 
+		return ToggleContainer
+	end,
 }
+
 local Tab = Library.Tabs;
 local ModuleDock = Library.ModuleDock;
 --> using Metatables aka Object Oriented Programming as constructors are so overpowered, if i call a function with a table index, i can Index it whatever as long as i index it with a metatable like this for example Index:Toggle <-- As long as the index is a metatables of Sections then it will work. Genius right? take notes beginners! <--
@@ -959,7 +1182,31 @@ function Library:Window(Data)
 	NewWindow.Parent =  localPlayer:WaitForChild("PlayerGui")-- game:GetService("CoreGui")
 	NewWindow["WindowHeader"]["UiTitle"].Text = Window.Title
 	NewWindow["WindowHeader"]["GameTitle"].Text = Window.Game
+	
+	task.spawn(function() 
+		-- this was the fucking solution all along, i was trying to find a way to run this code before subtab animation during runtime because this piece of shit code would be delaying during runtime and fuck up subtab size until you click, thank god i was looking at task library and found this miracle
+		NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1440	
 
+		Library:storeEvent(camera:GetPropertyChangedSignal('ViewportSize'),function()
+			NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1440
+		end)
+	end)
+	
+	function Window:HideHeader(bool: boolean)
+		TweenService:Create(NewWindow["WindowHeader"]["HidetabbarButton"]["Arrow"], Library.TweenInfo, {Rotation =  bool and 0 or 180}):Play()
+		TweenService:Create(NewWindow["WindowHeader"], Library.TweenInfo, {Size =  bool and UDim2.new(0,356,0,36) or UDim2.new(0,356,0,80)}):Play()
+		TweenService:Create(NewWindow["WindowHeader"]["TabContainer"], Library.TweenInfo, {Size =  bool and UDim2.new(1,-70,0,0) or UDim2.new(1,-70,0,34)}):Play()
+		NewWindow["WindowHeader"]["TabContainer"].Visible = not bool
+		TweenService:Create(NewWindow["WindowHeader"]["SearchToggleButton"], Library.TweenInfo, {Size =  bool and UDim2.new(0,34,0,0) or UDim2.new(0,34,0,34)}):Play()
+		TweenService:Create(NewWindow["WindowHeader"]["SearchToggleButton"]["SearchImage"], Library.TweenInfo, {Size =  bool and UDim2.new(1,12,0,0) or UDim2.new(0,12,0,12)}):Play()
+	end
+	
+	
+	
+	Library:storeEvent(NewWindow["WindowHeader"]["HidetabbarButton"].MouseButton1Down,function()
+		Window.WindowHeaderVis = not Window.WindowHeaderVis
+		Window:HideHeader(Window.WindowHeaderVis)
+	end)
 	Library:MakeDraggable(NewWindow["WindowHeader"],NewWindow["WindowHeader"],function(newPos)
 		NewWindow["WindowHeader"].Position = newPos
 
@@ -968,7 +1215,6 @@ function Library:Window(Data)
 	function Window:SelfDestruct()
 		NewWindow:Destroy()
 		Library = nil
-		ChangedSignal = nil
 	end
 
 	Window.Container = NewWindow
@@ -985,7 +1231,8 @@ function Library:Tab(Data)
 
 	local newWindowPage = Library.UI_Create:NewWindowPage()
 	newWindowPage.Parent = self.Container
-	Tab.Container = newWindowPage
+	Tab.Windowpage = newWindowPage
+
 	Library:MakeDraggable(newWindowPage,newWindowPage,function(newPos)
 		newWindowPage.Position = newPos
 	end)
@@ -1000,7 +1247,7 @@ function Library:Tab(Data)
 		local NewpagecontainerinsideWindow = Library.UI_Create:NewPage() 
 		NewpagecontainerinsideWindow.Parent = newWindowPage
 		Tab.Container = {LEFT = NewpagecontainerinsideWindow["LEFT"], RIGHT = NewpagecontainerinsideWindow["RIGHT"]}
-		
+
 		NewpagecontainerinsideWindow = nil -- garbage collection
 
 	end
@@ -1025,9 +1272,20 @@ function Library:Tab(Data)
 		TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
 		Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
 	end
+	function Tab:Goto()
+		if not self.Opened then
+			self:Open(true)
+			for _,Tabs in pairs(self.window.tabs) do 
+				if Tabs ~= self and Tabs.Opened then
+					Tabs:Open(false)
+
+				end
+			end
+		end
+	end
 
 	if self.firsttab then 
-		Tab:Open(true)
+		Tab:Goto()
 		self.firsttab = nil 
 	end 
 
@@ -1049,15 +1307,17 @@ function Library:Tab(Data)
 	return setmetatable(Tab,Library.Tabs)
 end
 
-function Tab:Subtab(Data) 
+function Tab:Subtab(Data)
+
 	if self.subtabs then   
 		local Data = Data or {}
-		local Subtab = {window = self,Title = Data.Title or Data.title or "Tab", Image = Data.Image or Data.image or nil, }
+		local Subtab = {tab = self,window=self.window,issubtab = true,Title = Data.Title or Data.title or "Tab", Image = Data.Image or Data.image or nil, }
 
 		local NewSubTab = Library.UI_Create:NewSubTab()
 		NewSubTab.Parent = self.Container[2]
 		NewSubTab["SubtabTitle"].Text = Subtab.Title 
 		NewSubTab["SubtabImage"].Image = Subtab.Image 
+		NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4,40 )
 
 		local NewSubTabPage = Library.UI_Create:NewSubTabPage()
 		NewSubTabPage.Parent = self.Container[1]
@@ -1066,30 +1326,32 @@ function Tab:Subtab(Data)
 		Subtab.Container = {LEFT = NewSubTabPage["LEFT"], RIGHT = NewSubTabPage["RIGHT"]}
 
 		function Subtab:Openanimation(bool:boolean)
-			--[[ 
-			Boy oh boy, this ahs got the most stressful part of making this ui, as i was making it, i realized that words would get cut off after i added
-			auto scaling to my UI, than it took me 2 hours to research, experiment, and come with the final calculation. I HOPE I DONT FIND ANOTHER BUG AGAIN FROM THIS PART AND IF I DO I AM GOING TO CHANGE THE DESIGN
-			
-			]]
-			TweenService:Create(NewSubTab, Library.TweenInfo, {Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 5) / math.clamp(self.window.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4 , 1,0) or UDim2.new(0,18,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
+	--[[ 
+	Boy oh boy, this ahs got the most stressful part of making this ui, as i was making it, i realized that words would get cut off after i added
+	auto scaling to my UI, than it took me 2 hours to research, experiment, and come with the final calculation. I HOPE I DONT FIND ANOTHER BUG AGAIN FROM THIS PART AND IF I DO I AM GOING TO CHANGE THE DESIGN
+]]
+			TweenService:Create(NewSubTab, Library.TweenInfo, {Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4, 1,0) or UDim2.new(0,18,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
 			TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Accent or Library.Theme.Inactive}):Play()
 			Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3", bool and Library.Theme.Accent or Library.Theme.Inactive)
-			TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText,Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 5) / math.clamp(self.window.window.Container["UIScale"].Scale,0,0.99) ,1,0) or UDim2.new(0,0,0) }):Play()
+			TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText,Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99) ,1,0) or UDim2.new(0,0,0) }):Play()
 			Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3", bool and Library.Theme.Accent or Library.Theme.DarkText)
+		--	NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4,40 )
+
 		end
 
-		function Subtab:Goto(tab) -- gonna need this for search function
-			self.window.Container[1]["UIPageLayout"]:JumpTo(self.window.Container[1][tab])
+		function Subtab:Goto() -- gonna need this for search function
+			self.tab:Goto()
+			self.tab.Container[1]["UIPageLayout"]:JumpTo(self.tab.Container[1][self.Title])
 
 		end
 
 		Library:storeEvent(NewSubTab.MouseEnter,function()
 
 			if  self.Container[1]["UIPageLayout"].CurrentPage.Name ~= Subtab.Title then 
-				TweenService:Create(NewSubTab, Library.TweenInfo, {Size = UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 5) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4 , 1,0)}):Play()
+				TweenService:Create(NewSubTab, Library.TweenInfo, {Size = UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4 , 1,0)}):Play()
 				TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = Library.Theme.Active}):Play()
 				Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3",  Library.Theme.Active )
-				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.LightText,Size =  UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 5) /math.clamp(self.window.Container["UIScale"].Scale,0,0.99), 1,0,1,0) }):Play()
+				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.LightText,Size =  UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) /math.clamp(self.window.Container["UIScale"].Scale,0,0.99), 1,0,1,0) }):Play()
 				Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3",  Library.Theme.Active)
 
 			end
@@ -1116,42 +1378,48 @@ function Tab:Subtab(Data)
 
 
 		Library:storeEvent(NewSubTab.MouseButton1Down,function()
-			Subtab:Goto(Subtab.Title)
+			Subtab:Goto()
 		end)
 
-
+		Subtab.Windowpage = self.Windowpage
 		return setmetatable(Subtab,Library.Tabs)
 	end
 end
 
 function Tab:Section(Data) 
 	local Data = Data or {}
-	local Section = {Side = Data.Side or Data.side or "Left",Pages={},Title = Data.Title or Data.title or "", SubSections = Data.group or Data.Group or false,Firstsectiontab = true,}
-	
+	local Section = {Page = self,WindowPage=self.Windowpage,Side = Data.Side or Data.side or "Left",Pages={}, Title = Data.Title or Data.title or "", SubSections = Data.group or Data.Group or false,Firstsectiontab = true,}
+
 	if Section.SubSections then
 		local NewMultiSectionFrame,Pages = Library.UI_Create:NewMultiSectionFrame()
 		NewMultiSectionFrame.Parent = self.Container[Section.Side:upper()]
-		
+
 		Section.Container = {NewMultiSectionFrame,Pages}
-		
+
 	else
 		local NewSectionFrame = Library.UI_Create:NewSectionFrame()
 		NewSectionFrame.Parent = self.Container[Section.Side:upper()]
 		NewSectionFrame["SectionHeaderFrame"]["Sectiontitle"].Text = Section.Title
 
 		Section.Container = NewSectionFrame
+		function Section:Goto()
+			Section.Page:Goto()
+		end
 	end
+	Section.Windowpage = self.Windowpage
 	return setmetatable(Section,Library.ModuleDock)	
 end
 function ModuleDock:Section_Page(Data) 
 	if self.SubSections then   
 		local Data = Data or {}
-		local SectionTab = {Title = Data.Title or Data.title or "",Opened = false,}
+		local SectionTab = {Section=self,page=self.Page,Tab=self.tab,Title = Data.Title or Data.title or "",Opened = false,}
+		SectionTab.Windowpage = self.Windowpage
 
 		local NewMultiSectionTab,Page = Library.UI_Create:NewMultiSectionTab()
 		NewMultiSectionTab.Parent = self.Container[1]["SectionTabBar"]
 		NewMultiSectionTab.Text = SectionTab.Title
 		Page.Parent = self.Container[2]
+
 		function SectionTab:Open(bool)
 			self.Opened = bool
 			TweenService:Create(NewMultiSectionTab, Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText}):Play()
@@ -1159,8 +1427,22 @@ function ModuleDock:Section_Page(Data)
 			TweenService:Create(NewMultiSectionTab["Indicator"], Library.TweenInfo, {BackgroundTransparency = bool and 0 or 1}):Play()
 			Page.Visible = bool
 		end
+		function SectionTab:Goto()
+			-- why can i not use self for this function?? whenver i use DirectTo function  from toggle it errors but before i changed it,  first section tab init is just fine when i used self, this is so weird if anyone is reading this and understands let me know
+			if not SectionTab.page.Opened then SectionTab.page:Goto() end
+
+			if not SectionTab.Opened then
+				SectionTab:Open(true)
+				for _,Tabs in pairs(SectionTab.Section.Pages) do 
+					if Tabs ~= SectionTab and Tabs.Opened then
+						Tabs:Open(false)
+
+					end
+				end
+			end
+		end
 		if self.Firstsectiontab then 
-			SectionTab:Open(true)
+			SectionTab:Goto()
 			self.Firstsectiontab = nil 
 		end
 		Library:storeEvent(NewMultiSectionTab.MouseButton1Down,function()
@@ -1174,46 +1456,124 @@ function ModuleDock:Section_Page(Data)
 			end
 		end)
 		self.Pages[#self.Pages + 1] = SectionTab
+		SectionTab.Container = Page
 		return setmetatable(SectionTab,Library.ModuleDock)	
 
 	end
 end
 function ModuleDock:Toggle(Data)
 	local Data = Data or {}
-	local Toggle = {PageData = {Tab = nil, Subtab = nil},Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or false, Container = nil, Callback = Data.Callback or Data.callback or function() end }
+	local Toggle = {Dock = self,Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function() end }
+	
+	local NewToggle = Library.UI_Create:NewToggle()
+	NewToggle.Parent = self.Container
+	NewToggle["ToggleTitle"].Text = Toggle.Title
 
-	return setmetatable(Library.ModuleDock,Toggle)
+	function Toggle:DirectTo() --> For search
+		--
+		if self.Dock.Identification == "Settings" then return end
+		self.Dock.Goto()
+		--> to catch the user attention <--
+		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
+		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", Library.Theme.Accent )
+		task.wait(2)
+		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = Toggle.Value and Library.Theme.LightText or Library.Theme.DarkText }):Play()
+		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3",Toggle.Value and Library.Theme.LightText or Library.Theme.DarkText )
+	end
+	
+	function Toggle:Set(NewValue:boolean)
+		Toggle.Value = NewValue 
+		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = NewValue and Library.Theme.LightText or Library.Theme.DarkText}):Play()
+		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", NewValue and Library.Theme.LightText or Library.Theme.DarkText)
+		TweenService:Create(NewToggle["Checkbox"], Library.TweenInfo, {BackgroundColor3 = NewValue and Library.Theme.Accent or Library.Theme.DarkContrast}):Play()
+		Library:UpdateObject(NewToggle["ToggleTitle"],"BackgroundColor3", NewValue and Library.Theme.Accent or Library.Theme.DarkContrast)
+		TweenService:Create(NewToggle["Checkbox"]["Checkmark"], Library.TweenInfo, {Size = NewValue and UDim2.new(1,0,1,0) or UDim2.new(0,0,0,0)}):Play()
+
+	end
+	
+	Library:storeEvent(NewToggle.MouseButton1Down,function()
+		Toggle:Set(not Toggle.Value)
+	end)
+
+	Toggle.Container = {NewToggle["ToggleExtraModuletContainer"],Toggle.Dock.Windowpage}
+	return setmetatable(Toggle,Library.ModuleDock)
 end
 
 function ModuleDock:Settings()
-	local Settings = {}
+	local Settings = {Opened = false,Identification="Settings"}
+	local ToggleButton,AntiClick = Library.UI_Create:NewWidgetContainer()
 
-	return setmetatable(Library.ModuleDock,Settings)
+	ToggleButton.Parent = self.Container[1]
+
+	AntiClick.Parent = self.Container[2]
+	
+	local debounce = false
+	function Settings:Open(bool:boolean)
+		if not  debounce then   
+		debounce = true 
+		
+		Library:CloseAllActives()
+		Library.Actives[#Library.Actives +1] = AntiClick
+
+		AntiClick.Visible = bool
+		Settings.Opened = bool 
+
+		TweenService:Create(AntiClick, Library.TweenInfo, {Size = bool and UDim2.new(0,200,0,200) or UDim2.new(0,0,0,0)}):Play()
+		TweenService:Create(ToggleButton, Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
+		Library:UpdateObject(ToggleButton,"ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
+		task.wait(0.4)
+		debounce = false 
+		end
+	end
+	
+	Library:storeEvent(UserInputService.InputBegan,function(Input)
+		if Settings.Opened and (Input.UserInputType == Enum.UserInputType.Touch or  Input.UserInputType == Enum.UserInputType.MouseButton1) then
+			if not Library:IsHovered(AntiClick["ModulesContainer"]) then 
+			Settings:Open(false)
+				end
+		end
+	end)
+	
+	Library:storeEvent(ToggleButton.MouseButton1Down,function()
+		Settings:Open(not Settings.Opened)
+	end)
+	
+	Settings.Container = AntiClick["ModulesContainer"]
+	return setmetatable(Settings,Library.ModuleDock)
 end
 function ModuleDock:Colorpicker(Data)
 	local Data = Data or {}
 	local Colorpicker = {Identification = "Colorpicker",Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback or function() end }
-
+	
 	return setmetatable(Library.ModuleDock,Colorpicker)
 end
+function ModuleDock:Button(Data)
+	local Data = Data or {}
+	local Button = {Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback or function() end}
 
--- if you wonder why a certain module is not saving is due to not having Flag in them, if you want them to save, add Flag in the module table, {Flag = <string>}
--- All module properties can be uppercase or lowercase 
+	local NewButtonContainer = Library.UI_Create:NewButtonContainer()
+	NewButtonContainer.Parent = self.Container
 
-do 
-	local NewWindow = Library:Window({Title = "Qw hub", Game = "Multicrew Tank Combat"})
-	local NewVisualstab = NewWindow:Tab({Image = "rbxassetid://15964021599",Subtabs=true})
-	local Playersesptab = NewVisualstab:Subtab({Title = "Players",Image="rbxassetid://15150178302"})
-	local Playerespgroupbox = Playersesptab:Section({Title = "Main", Group = false,Side = "Left"})
+	local NewButton =Library.UI_Create:NewButton()
+	NewButton.Parent = NewButtonContainer
+	NewButton.Text = Button.Title
 
-	local Playerespgroupbox = Playersesptab:Section({Group = true,Side = "Right"})
-	Playerespgroupbox:Section_Page({Title = "Self"})
-	Playerespgroupbox:Section_Page({Title = "Hostile"})
-	Playerespgroupbox:Section_Page({Title = "Friendly"})
+	Library:storeEvent(NewButton.MouseButton1Down,function()
+		Button.Callback()
+	end)
+	function Button:Button(Data)
+		local Data = Data or {}
+		local Button = {Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback or function() end}
 
-	NewVisualstab:Subtab({Title = "World",Image="rbxassetid://15964021599"})
-	local NewCombatTab = NewWindow:Tab({Image = "rbxassetid://136879043989014"})
-	local NewSettingsTab = NewWindow:Tab({Image = "rbxassetid://72732892493295"})
+		local NewButton =Library.UI_Create:NewButton()
+		NewButton.Parent = NewButtonContainer
+		NewButton.Text = Button.Title
 
+		Library:storeEvent(NewButton.MouseButton1Down,function()
+			Button.Callback()
+		end)
+	end
 
+	return setmetatable(Button,Library.ModuleDock)
 end
+return Library
