@@ -1283,9 +1283,9 @@ Library.UI_Create ={
 			Parent = NoClickDetector 
 		}) 
 		Library:Render("UIPadding", {  
-			PaddingRight = UDim.new(0, 11),
-			PaddingLeft = UDim.new(0, 11),
-			Parent = DropdownContainer 
+			PaddingRight = UDim.new(0, 8),
+			PaddingLeft = UDim.new(0, 8),
+			Parent = DropdownBox 
 		}) 
 		Library:Render("TextLabel", {  
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
@@ -1707,6 +1707,7 @@ function ModuleDock:Dropdown(Data)
 			end
 		end
 	end
+	
 	function Dropdown:DirectTo() --> For search
 		--
 		if self.Dock.Identification == "Settings" then return end
@@ -1749,7 +1750,13 @@ function ModuleDock:Dropdown(Data)
 	Library:storeEvent(NewDropdown.MouseButton1Down,function()
 		Dropdown:Open(not Dropdown.Opened)
 	end)
-			
+	Library:storeEvent(UserInputService.InputBegan,function(Input)
+		if Dropdown.Opened and (Input.UserInputType == Enum.UserInputType.Touch or  Input.UserInputType == Enum.UserInputType.MouseButton1) then
+			if not Library:IsHovered(NewDropdown["DropdownBox"]) then 
+				Dropdown:Open(false)
+			end
+		end
+	end)
 	Dropdown:NewOptions(Dropdown.Options)
 	
 	if Dropdown.Combo and Dropdown.Value == "" then 
@@ -1890,5 +1897,5 @@ function ModuleDock:Button(Data)
 		end)
 	end
 	return setmetatable(Button,Library.ModuleDock)
-end 
+end
 return Library
