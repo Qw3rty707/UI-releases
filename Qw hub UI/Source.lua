@@ -9,6 +9,8 @@ some of my code to make it easier to understand.
 
 
 ]]
+-- Use string.sub(string,#searchtext) to make sure the it filter through start to finish so the search wont just search whatever has the letter, autocomplete will just find first result and when tab is pressed it will direct to the module
+
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 -->Services<--f
@@ -112,7 +114,7 @@ function Library:storeEvent(Event: RBXScriptSignal, thread: thread)
 end
 
 
-function Library:MakeDraggable(Dragger , Object, OnChange, OnEnd)
+function Library:MakeDraggable(Dragger: Instance , Object:Instance, OnChange:thread, OnEnd:thread)
 	local Position, StartPosition = nil, nil
 
 	Library:storeEvent(Dragger.InputBegan,function(Input)
@@ -149,15 +151,13 @@ function Library:ToRGB(color: Color3)
 end
 
 --> this is to like automatically adapt to a new theme that a object does so whenever like a toggle is toggled and i change it to accent and text to light text than i will update it so when you change theme it wont change the toggle main color 
-function Library:UpdateObject(Object, Property, Value)
+function Library:UpdateObject(Object:Instance, Property:any, Value:any)
 	if not self.InstanceStorage[Object] then
 		self.InstanceStorage[Object] = {[Property] = Value}
 	else
 		self.InstanceStorage[Object][Property] = Value
 	end
 end
-
-
 
 --> Makes new frames <--
 function Library:Render(ObjectType: string, Properties) 
@@ -228,13 +228,13 @@ function Library:NewConfig(Title:string,Description:string,Author:string)
 		end
 	end
 end
-function Library:LoadConfig()
+function Library:LoadConfig(Title)
 	-- Grab data from config file by decoding it and load the modules settings and when it comes to multi dropdown, keybind, and colorpicker i have to specifically decode them and load them different than usual because the values are different for some reason 
 end
 function Library:CloseAllActives()
 	for _,Actives in pairs(Library.Actives) do 
-		if Actives.Visible then
-			Actives.Visible = false
+		if Actives.Opened then
+			Actives:Open(false)
 			table.clear(Library.Actives)
 		end
 	end
@@ -247,7 +247,7 @@ function Library:IsHovered(Object:Instance)
 		return false
 	end
 end
-function Library:ChangeFont(Font: Enum.Font? | string?) --> this part is not done and has not been tested yet <--
+function Library:ChangeFont(Font: Enum.Font| string) --> this part is not done and has not been tested yet <--
 	for Index, Value in pairs(self.InstanceStorage) do
 		if Value:IsA("FontFace") then
 			for Index2, _ in pairs(Value) do
@@ -268,7 +268,7 @@ Library.UI_Create ={
 		local WindowHeader = Library:Render("Frame", {  
 			Size = UDim2.new(0, 356, 0, 80),
 			Name = "WindowHeader",
-			
+
 			Position = UDim2.new(0.33260834217071533, 0, 0, 5),
 			BorderSizePixel = 0,
 			ZIndex = Library.ZIndex,
@@ -422,11 +422,11 @@ Library.UI_Create ={
 			BorderSizePixel = 0,
 			Parent = SearchFrame 
 		}) 
-		Library:Render("TextBox", {  
+		local Inputbox = Library:Render("TextBox", {  
 			Name = "Input",
 			CursorPosition = -1,
 			TextColor3 = "LightText",
-			ZIndex = Library.ZIndex,
+			ZIndex = Library.ZIndex + 1,
 			Text = "",
 			Size = UDim2.new(1, -34, 1, 0),
 			Position = UDim2.new(0, 34, 0, 0),
@@ -438,6 +438,20 @@ Library.UI_Create ={
 			PlaceholderText = "Search ...",
 			TextSize = 12,
 			Parent = SearchFrame 
+		}) 
+		Library:Render("TextLabel", {  
+			Name = "AutoComplete",
+			TextColor3 = "DarkText",
+			ZIndex = Library.ZIndex,
+			Text = "",
+			Size = UDim2.new(1, -34, 1, 0),
+			Position = UDim2.new(0, 34, 0, 0),
+			BorderSizePixel = 0,
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 12,
+			Parent = Inputbox 
 		}) 
 		Library:Render("ImageLabel", {  
 			ImageColor3 = "Inactive",
@@ -969,7 +983,7 @@ Library.UI_Create ={
 			Name = "ToggleWidgetButton",
 			Size = UDim2.new(0, 15, 0, 15),
 			ImageColor3 = "Inactive",
-			Image = "rbxassetid://72732892493295",
+			Image = "rbxassetid://95127553964880",
 			BackgroundTransparency = 1,
 			Position = UDim2.new(1, 0, 0.5, 0),
 			ZIndex = Library.ZIndex,
@@ -1163,6 +1177,172 @@ Library.UI_Create ={
 		}) 
 		return ToggleContainer
 	end,
+	NewDropdown = function()
+		local DropdownContainer = Library:Render("TextButton", {  
+			TextTransparency = 1,
+			Text = "",
+			BackgroundTransparency = 1,
+			Name = "DropdownContainer",
+			Size = UDim2.new(1, 0, 0, 44),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		local DropdownBox = Library:Render("Frame", {  
+			Name = "DropdownBox",
+			Position = UDim2.new(0, 0, 0, 21),
+			ZIndex = Library.ZIndex,
+			BackgroundColor3 = "LightContrast",
+			BorderSizePixel = 0,
+			Size = UDim2.new(1, 0, 0, 23),
+			Parent = DropdownContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = DropdownBox 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			Parent = DropdownBox 
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "DarkText",
+			Name = "DropdownSelected",
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Size = UDim2.new(1, -40, 0, 23),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			BorderSizePixel = 0,
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = DropdownBox 
+		}) 
+
+		Library:Render("ImageLabel", {  
+			ImageColor3 = "Inactive",
+			Name = "Dropdownarrow",
+			Rotation = 0,
+			Size = UDim2.new(0, 18, 0, 18),
+			AnchorPoint = Vector2.new(1, 0),
+			Image = "rbxassetid://95082215439315",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 0, 0, 4),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Parent = DropdownBox 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = DropdownBox 
+		}) 
+		local NoClickDetector = Library:Render("TextButton", {  
+			Visible = false,
+			Text = "",
+			Name = "NoClickDetector",
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 0, 0, 27),
+			Size = UDim2.new(1, 0, 0, 80),
+			ZIndex = Library.ZIndex + 3,
+			TextSize = 14,
+			Parent = DropdownBox 
+		}) 
+		local OptionContainer = Library:Render("ScrollingFrame", {  
+			Active = true,
+			ScrollBarImageTransparency = 1,
+			ScrollBarThickness = 0,
+			Name = "OptionContainer",
+			Size = UDim2.new(1, 0, 1, 0),
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			ScrollingDirection = Enum.ScrollingDirection.Y,
+			ZIndex = Library.ZIndex + 4,
+			BorderSizePixel = 0,
+			CanvasSize = UDim2.new(0, 0, 0, 0),
+			Parent = NoClickDetector 
+		}) 
+		Library:Render("UIListLayout", {  
+			Padding = UDim.new(0, 8),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = OptionContainer 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingTop = UDim.new(0, 8),
+			Parent = OptionContainer 
+		}) 
+		Library:Render("Frame", {  
+			Name = "SeparatorLine",
+			Size = UDim2.new(1, 0, 0, 1),
+			ZIndex = Library.ZIndex + 4,
+			BorderSizePixel = 0,
+			BackgroundColor3 = "InnerStroke",
+			Parent = NoClickDetector 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingRight = UDim.new(0, 11),
+			PaddingLeft = UDim.new(0, 11),
+			Parent = DropdownContainer 
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "DarkText",
+			Name = "DropdownTitle",
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Size = UDim2.new(0, 50, 0, 12),
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = DropdownContainer 
+		}) 
+		return DropdownContainer
+	end,
+	NewOption = function()
+		local NewOptionContainer = Library:Render("TextButton", {  
+			Text = "",
+			Name = "NewOptionContainer",
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Size = UDim2.new(1, 0, 0, 12),
+			ZIndex = Library.ZIndex + 3,
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "DarkText",
+			BorderSizePixel = 0,
+			Name = "OptionText",
+			AnchorPoint = Vector2.new(1, 0),
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Position = UDim2.new(1, 0, 0, 0),
+			ZIndex = Library.ZIndex +3,
+			TextSize = 12,
+			Parent = NewOptionContainer 
+		}) 
+		local Indicator = Library:Render("Frame", {  
+			BackgroundTransparency = 0,
+			Size = UDim2.new(0, 0, 1, 0),
+			ZIndex = Library.ZIndex + 3,
+			Name="Indicator",
+			BorderSizePixel = 0,
+			BackgroundColor3 = "Accent",
+			Parent = NewOptionContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 0),
+			TopRightRadius = UDim.new(1, 0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(0, 0),
+			Parent = Indicator 
+		}) 
+		return NewOptionContainer
+	end,
+
 }
 
 local Tab = Library.Tabs;
@@ -1182,16 +1362,17 @@ function Library:Window(Data)
 	NewWindow.Parent =  localPlayer:WaitForChild("PlayerGui")-- game:GetService("CoreGui")
 	NewWindow["WindowHeader"]["UiTitle"].Text = Window.Title
 	NewWindow["WindowHeader"]["GameTitle"].Text = Window.Game
-	
+
 	task.spawn(function() 
 		-- this was the fucking solution all along, i was trying to find a way to run this code before subtab animation during runtime because this piece of shit code would be delaying during runtime and fuck up subtab size until you click, thank god i was looking at task library and found this miracle
+		task.wait(0.2)
 		NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1440	
 
 		Library:storeEvent(camera:GetPropertyChangedSignal('ViewportSize'),function()
 			NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1440
 		end)
 	end)
-	
+
 	function Window:HideHeader(bool: boolean)
 		TweenService:Create(NewWindow["WindowHeader"]["HidetabbarButton"]["Arrow"], Library.TweenInfo, {Rotation =  bool and 0 or 180}):Play()
 		TweenService:Create(NewWindow["WindowHeader"], Library.TweenInfo, {Size =  bool and UDim2.new(0,356,0,36) or UDim2.new(0,356,0,80)}):Play()
@@ -1200,9 +1381,9 @@ function Library:Window(Data)
 		TweenService:Create(NewWindow["WindowHeader"]["SearchToggleButton"], Library.TweenInfo, {Size =  bool and UDim2.new(0,34,0,0) or UDim2.new(0,34,0,34)}):Play()
 		TweenService:Create(NewWindow["WindowHeader"]["SearchToggleButton"]["SearchImage"], Library.TweenInfo, {Size =  bool and UDim2.new(1,12,0,0) or UDim2.new(0,12,0,12)}):Play()
 	end
-	
-	
-	
+
+
+
 	Library:storeEvent(NewWindow["WindowHeader"]["HidetabbarButton"].MouseButton1Down,function()
 		Window.WindowHeaderVis = not Window.WindowHeaderVis
 		Window:HideHeader(Window.WindowHeaderVis)
@@ -1213,8 +1394,12 @@ function Library:Window(Data)
 	end)
 	--> Cleaning up to prevent memory leaks <--
 	function Window:SelfDestruct()
+		for _,connections in ipairs(Library.Connections) do 
+			connections:Disconnect()
+		end
 		NewWindow:Destroy()
 		Library = nil
+
 	end
 
 	Window.Container = NewWindow
@@ -1318,7 +1503,6 @@ function Tab:Subtab(Data)
 		NewSubTab["SubtabTitle"].Text = Subtab.Title 
 		NewSubTab["SubtabImage"].Image = Subtab.Image 
 		NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4,40 )
-
 		local NewSubTabPage = Library.UI_Create:NewSubTabPage()
 		NewSubTabPage.Parent = self.Container[1]
 		NewSubTabPage.Name = Subtab.Title
@@ -1326,16 +1510,16 @@ function Tab:Subtab(Data)
 		Subtab.Container = {LEFT = NewSubTabPage["LEFT"], RIGHT = NewSubTabPage["RIGHT"]}
 
 		function Subtab:Openanimation(bool:boolean)
-	--[[ 
-	Boy oh boy, this ahs got the most stressful part of making this ui, as i was making it, i realized that words would get cut off after i added
-	auto scaling to my UI, than it took me 2 hours to research, experiment, and come with the final calculation. I HOPE I DONT FIND ANOTHER BUG AGAIN FROM THIS PART AND IF I DO I AM GOING TO CHANGE THE DESIGN
+--[[ 
+Boy oh boy, this ahs got the most stressful part of making this ui, as i was making it, i realized that words would get cut off after i added
+auto scaling to my UI, than it took me 2 hours to research, experiment, and come with the final calculation. I HOPE I DONT FIND ANOTHER BUG AGAIN FROM THIS PART AND IF I DO I AM GOING TO CHANGE THE DESIGN
 ]]
 			TweenService:Create(NewSubTab, Library.TweenInfo, {Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4, 1,0) or UDim2.new(0,18,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
 			TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Accent or Library.Theme.Inactive}):Play()
 			Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3", bool and Library.Theme.Accent or Library.Theme.Inactive)
 			TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText,Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99) ,1,0) or UDim2.new(0,0,0) }):Play()
 			Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3", bool and Library.Theme.Accent or Library.Theme.DarkText)
-		--	NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4,40 )
+			--	NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4,40 )
 
 		end
 
@@ -1461,10 +1645,119 @@ function ModuleDock:Section_Page(Data)
 
 	end
 end
+function ModuleDock:Dropdown(Data)
+	local Data = Data or {}
+	local Dropdown = {Opened = false,Combo = Data.Combo or Data.combo or false, Title = Data.Title or Data.title or "Dropdown", Value = Data.Value or Data.value or "" ,Options = Data.Options or Data.options or {"1","2"},Callback=Data.Callback or Data.callback }
+
+	local NewDropdown = Library.UI_Create:NewDropdown()
+	NewDropdown.Parent = self.Container
+	NewDropdown["DropdownTitle"].Text = Dropdown.Title
+
+	function Dropdown:SetValue(Value: string)
+		if self.Combo then 
+			if table.find(self.Value,Value) then 
+				table.remove(self.Value,table.find(self.Value, Value))
+			elseif not table.find(self.Value,Value) then
+				self.Value[#self.Value + 1] = Value
+			end
+			NewDropdown["DropdownBox"]["DropdownSelected"].Text =  table.concat(self.Value, ", ")
+		elseif not Dropdown.Combo then
+			self.Value = Value
+			NewDropdown["DropdownBox"]["DropdownSelected"].Text =  tostring(self.Value)
+		end 
+		for _,Option in pairs(NewDropdown["DropdownBox"]["NoClickDetector"]["OptionContainer"]:GetChildren()) do 
+			if Dropdown.Combo then 
+			if  Option.Name == Value and  table.find(self.Value,Option.Name)and Option:IsA("TextButton") then 
+				TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.Accent, Size = UDim2.new(1,-8,1,0)}):Play()
+				TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,3,1,0)}):Play()
+				Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.LightText)
+				elseif  Option.Name == Value and not table.find(self.Value,Option.Name) and Option:IsA("TextButton") then
+				TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText, Size = UDim2.new(1,0,1,0)}):Play()
+				TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,0,1,0)}):Play()
+				Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.DarkText)
+				end
+				else
+			if  Option.Name == Value  and Option:IsA("TextButton") then 
+					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.Accent, Size = UDim2.new(1,-8,1,0)}):Play()
+				TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,3,1,0)}):Play()
+				Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.LightText)
+					
+			elseif  Option.Name ~= Value  and Option:IsA("TextButton") then
+					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText, Size = UDim2.new(1,0,1,0)}):Play()
+					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,0,1,0)}):Play()
+					Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.DarkText)
+				end			
+				end
+		end
+		self.Callback(self.Value)
+	end
+
+	function Dropdown:NewOptions(Options: {string})
+		for _,NewOptions in pairs(Options) do 
+			if typeof(NewOptions) == "string" then 
+
+				local NewOption = Library.UI_Create:NewOption()
+				NewOption.Name = NewOptions
+				NewOption.Parent = NewDropdown["DropdownBox"]["NoClickDetector"]["OptionContainer"]
+				NewOption["OptionText"].Text = NewOptions
+
+				Library:storeEvent(NewOption.MouseButton1Down,function()
+					Dropdown:SetValue(NewOption.Name)
+				end)
+			end
+		end
+	end
+
+	local debounce = false
+	function Dropdown:Open(bool:boolean)
+		if not debounce then 
+			debounce = true 
+			if bool then 
+				Library:CloseAllActives()
+				Library.Actives[#Library.Actives +1] = self
+			end
+			self.Opened = bool
+			NewDropdown["DropdownBox"].ZIndex = bool and Library.ZIndex + 3 or Library.ZIndex
+			NewDropdown["DropdownBox"]["DropdownSelected"].ZIndex = bool and Library.ZIndex + 3 or Library.ZIndex
+				NewDropdown["DropdownBox"]["Dropdownarrow"].ZIndex = bool and Library.ZIndex + 3 or Library.ZIndex
+			
+			TweenService:Create(NewDropdown["DropdownBox"], Library.TweenInfo, {Size = bool and UDim2.new(1,0,0,23+80) or UDim2.new(1,0,0,23)}):Play()
+			TweenService:Create(NewDropdown["DropdownBox"]["Dropdownarrow"], Library.TweenInfo, {Rotation = bool and 180 or 0,ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
+			Library:UpdateObject(NewDropdown["DropdownTitle"],"ImageColor3",  bool and Library.Theme.Active or Library.Theme.Inactive)
+			TweenService:Create(NewDropdown["DropdownBox"]["DropdownSelected"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText}):Play()
+			Library:UpdateObject(NewDropdown["DropdownBox"]["DropdownSelected"],"TextColor3", bool and Library.Theme.LightText or Library.Theme.DarkText)
+			TweenService:Create(NewDropdown["DropdownTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText}):Play()
+			Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3", bool and Library.Theme.LightText or Library.Theme.DarkText)
+			NewDropdown["DropdownBox"]["NoClickDetector"].Visible = bool
+			
+
+			task.wait(0.4)
+			debounce= false
+		end
+	end
+	Library:storeEvent(NewDropdown.MouseButton1Down,function()
+		Dropdown:Open(not Dropdown.Opened)
+	end)
+			
+	Dropdown:NewOptions(Dropdown.Options)
+	
+	if Dropdown.Combo and Dropdown.Value == "" then 
+		Dropdown.Value = {}
+		Dropdown:SetValue(Dropdown.Options[1])
+	elseif Dropdown.Combo and Dropdown.Value ~= "" then  
+		Dropdown:SetValue(Dropdown.Value)
+	end
+	if  not Dropdown.Combo and Dropdown.Value == "" then
+		Dropdown:SetValue(Dropdown.Options[1])
+	elseif not Dropdown.Combo and Dropdown.Value ~= "" then
+		Dropdown:SetValue(Dropdown.Value)
+		end
+	return setmetatable(Dropdown,Library.ModuleDock)
+end
 function ModuleDock:Toggle(Data)
 	local Data = Data or {}
-	local Toggle = {Dock = self,Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function() end }
-	
+	local Toggle = {Identification = "Toggle",Dock = self,Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback}
+
 	local NewToggle = Library.UI_Create:NewToggle()
 	NewToggle.Parent = self.Container
 	NewToggle["ToggleTitle"].Text = Toggle.Title
@@ -1480,20 +1773,21 @@ function ModuleDock:Toggle(Data)
 		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = Toggle.Value and Library.Theme.LightText or Library.Theme.DarkText }):Play()
 		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3",Toggle.Value and Library.Theme.LightText or Library.Theme.DarkText )
 	end
-	
+
 	function Toggle:Set(NewValue:boolean)
-		Toggle.Value = NewValue 
+		self.Value = NewValue 
 		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = NewValue and Library.Theme.LightText or Library.Theme.DarkText}):Play()
 		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", NewValue and Library.Theme.LightText or Library.Theme.DarkText)
 		TweenService:Create(NewToggle["Checkbox"], Library.TweenInfo, {BackgroundColor3 = NewValue and Library.Theme.Accent or Library.Theme.DarkContrast}):Play()
 		Library:UpdateObject(NewToggle["ToggleTitle"],"BackgroundColor3", NewValue and Library.Theme.Accent or Library.Theme.DarkContrast)
-		TweenService:Create(NewToggle["Checkbox"]["Checkmark"], Library.TweenInfo, {Size = NewValue and UDim2.new(1,0,1,0) or UDim2.new(0,0,0,0)}):Play()
-
+		TweenService:Create(NewToggle["Checkbox"]["Checkmark"], Library.TweenInfo, {Size = NewValue and UDim2.new(0,15,0,15) or UDim2.new(0,0,0,0)}):Play()
+		
 	end
-	
+
 	Library:storeEvent(NewToggle.MouseButton1Down,function()
 		Toggle:Set(not Toggle.Value)
 	end)
+	Toggle:Set(Toggle.Value)
 
 	Toggle.Container = {NewToggle["ToggleExtraModuletContainer"],Toggle.Dock.Windowpage}
 	return setmetatable(Toggle,Library.ModuleDock)
@@ -1506,51 +1800,51 @@ function ModuleDock:Settings()
 	ToggleButton.Parent = self.Container[1]
 
 	AntiClick.Parent = self.Container[2]
-	
-	local debounce = false
+
+	local debounce = false --> to prevent settings closing when you click on it because the Auto close when not hover will just auto close when settings is clicked, it so i put a cooldown
 	function Settings:Open(bool:boolean)
 		if not  debounce then   
-		debounce = true 
-		
-			Library:CloseAllActives()
-			if bool then 
-		Library.Actives[#Library.Actives +1] = AntiClick
-end
-		AntiClick.Visible = bool
-		Settings.Opened = bool 
+			debounce = true 
 
-		TweenService:Create(AntiClick, Library.TweenInfo, {Size = bool and UDim2.new(0,200,0,200) or UDim2.new(0,0,0,0)}):Play()
-		TweenService:Create(ToggleButton, Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
-		Library:UpdateObject(ToggleButton,"ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
-		task.wait(0.4)
-		debounce = false 
+			if bool then 
+				Library:CloseAllActives()
+				Library.Actives[#Library.Actives +1] = self
+			end
+			AntiClick.Visible = bool
+			Settings.Opened = bool 
+
+			TweenService:Create(AntiClick, Library.TweenInfo, {Size = bool and UDim2.new(0,200,0,200) or UDim2.new(0,0,0,0)}):Play()
+			TweenService:Create(ToggleButton, Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
+			Library:UpdateObject(ToggleButton,"ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
+			task.wait(0.4)
+			debounce = false 
 		end
 	end
-	
+
 	Library:storeEvent(UserInputService.InputBegan,function(Input)
 		if Settings.Opened and (Input.UserInputType == Enum.UserInputType.Touch or  Input.UserInputType == Enum.UserInputType.MouseButton1) then
 			if not Library:IsHovered(AntiClick["ModulesContainer"]) then 
-			Settings:Open(false)
-				end
+				Settings:Open(false)
+			end
 		end
 	end)
-	
+
 	Library:storeEvent(ToggleButton.MouseButton1Down,function()
 		Settings:Open(not Settings.Opened)
 	end)
-	
+
 	Settings.Container = AntiClick["ModulesContainer"]
 	return setmetatable(Settings,Library.ModuleDock)
 end
 function ModuleDock:Colorpicker(Data)
 	local Data = Data or {}
-	local Colorpicker = {Identification = "Colorpicker",Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback or function() end }
-	
+	local Colorpicker = {Identification = "Colorpicker",Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback }
+
 	return setmetatable(Library.ModuleDock,Colorpicker)
 end
 function ModuleDock:Button(Data)
 	local Data = Data or {}
-	local Button = {Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback or function() end}
+	local Button = {Identification="Button",Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback }
 
 	local NewButtonContainer = Library.UI_Create:NewButtonContainer()
 	NewButtonContainer.Parent = self.Container
@@ -1558,13 +1852,23 @@ function ModuleDock:Button(Data)
 	local NewButton =Library.UI_Create:NewButton()
 	NewButton.Parent = NewButtonContainer
 	NewButton.Text = Button.Title
-
 	Library:storeEvent(NewButton.MouseButton1Down,function()
 		Button.Callback()
 	end)
+	function Button:DirectTo() --> For search
+		--
+		if self.Dock.Identification == "Settings" then return end
+		self.Dock.Goto()
+		--> to catch the user attention <--
+		TweenService:Create(NewButton, Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
+		Library:UpdateObject(NewButton,"TextColor3", Library.Theme.Accent )
+		task.wait(2)
+		TweenService:Create(NewButton, Library.TweenInfo, {TextColor3 = Library.Theme.LightText}):Play()
+		Library:UpdateObject(NewButton,"TextColor3",Library.Theme.LightText )
+	end
 	function Button:Button(Data)
 		local Data = Data or {}
-		local Button = {Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback or function() end}
+		local Button = {Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback}
 
 		local NewButton =Library.UI_Create:NewButton()
 		NewButton.Parent = NewButtonContainer
@@ -1574,9 +1878,6 @@ function ModuleDock:Button(Data)
 			Button.Callback()
 		end)
 	end
-
 	return setmetatable(Button,Library.ModuleDock)
-end
--- if you wonder why a certain module is not saving is due to not having Flag in them, if you want them to save, add Flag in the module table, {Flag = <string>}
--- All module properties can be uppercase or lowercase 
+end 
 return Library
