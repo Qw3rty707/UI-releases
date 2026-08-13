@@ -1707,7 +1707,18 @@ function ModuleDock:Dropdown(Data)
 			end
 		end
 	end
-
+	function Dropdown:DirectTo() --> For search
+		--
+		if self.Dock.Identification == "Settings" then return end
+		self.Dock.Goto()
+		--> to catch the user attention <--
+		TweenService:Create(NewDropdown["DropdownTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
+		Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3", Library.Theme.Accent )
+		task.wait(2)
+		TweenService:Create(NewDropdown["DropdownTitle"], Library.TweenInfo, {TextColor3 = Dropdown.Opened and Library.Theme.LightText or Library.Theme.DarkText }):Play()
+		Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3",Dropdown.Opened and Library.Theme.LightText or Library.Theme.DarkText )
+	end
+	
 	local debounce = false
 	function Dropdown:Open(bool:boolean)
 		if not debounce then 
