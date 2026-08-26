@@ -9,8 +9,7 @@ some of my code to make it easier to understand.
 
 
 ]]
--- Use string.sub(string,#searchtext) to make sure the it filter through start to finish so the search wont just search whatever has the letter, autocomplete will just find first result and when tab is pressed it will direct to the module
-
+-- Fix search: the filter system is okay but the filter works really bad after the results dont match with the input at times, fix tab: when the Ui is initiated, the first tab auto size is inaccurate and when another tab is clicked the auto size works just fine and it has to do with the UIScale for some reason 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 -->Services<--f
@@ -266,16 +265,16 @@ function Library:ChangeFont(Font: Enum.Font| string) --> this part is not done a
 
 end
 
-function Library:GetTextIndex(text:string)
-	for i = 1, #text do 
-		return i
-	end
-end
+
 --> Object Backend creation <-- 
 Library.UI_Create ={
 	NewWindow = function()
 		local ScreenGui = Library:Render("ScreenGui", {ZIndexBehavior = Enum.ZIndexBehavior.Global, ResetOnSpawn = false}) 
 		local UIScale = Library:Render("UIScale", {Parent = ScreenGui})
+		local Blur = Library:Render("BlurEffect", {  
+			Size = 56,
+			Parent = game.Lighting 
+		}) 
 
 
 		local WindowHeader = Library:Render("Frame", {  
@@ -349,7 +348,7 @@ Library.UI_Create ={
 		Library:Render("UIListLayout", {  
 			VerticalAlignment = Enum.VerticalAlignment.Center,
 			FillDirection = Enum.FillDirection.Horizontal,
-			Padding = UDim.new(0, 4),
+			Padding = UDim.new(0, 2),
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = TabContainer 
 		}) 
@@ -425,7 +424,7 @@ Library.UI_Create ={
 			Parent = SearchFrame 
 		}) 
 		Library:Render("ImageLabel", {  
-			ImageColor3 = "DarkText",
+			ImageColor3 = "Inactive",
 			ZIndex = Library.ZIndex,
 			Name = "SearchImage",
 			Size = UDim2.new(0, 12, 0, 12),
@@ -509,7 +508,7 @@ Library.UI_Create ={
 		}) 
 
 
-		return ScreenGui
+		return ScreenGui,Blur
 	end,
 	NewResultContainer = function()
 		local ResultContainer =Library:Render("Frame", {  
@@ -518,32 +517,16 @@ Library.UI_Create ={
 			Position = UDim2.new(0, 0, 1, 8),
 			BorderSizePixel = 0,
 			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = "DarkContrast",
+			BackgroundTransparency=1,
 		}) 
-		Library:Render("UIStroke", {  
-			Color = "OuterStroke",
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Parent = ResultContainer 
-		}) 
-		Library:Render("UIStroke", {  
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Color = "InnerStroke",
-			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
-			Parent = ResultContainer 
-		}) 
+
 		Library:Render("UIListLayout", {  
-			Padding = UDim.new(0, 5),
+			Padding = UDim.new(0, 6),
 			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = ResultContainer 
 		}) 
-		Library:Render("UIPadding", {  
-			PaddingTop = UDim.new(0, 14),
-			PaddingBottom = UDim.new(0, 14),
-			PaddingRight = UDim.new(0, 14),
-			PaddingLeft = UDim.new(0, 14),
-			Parent = ResultContainer 
-		}) 
+
 		Library:Render("UICorner", {  
 			Parent = ResultContainer 
 		}) 
@@ -595,7 +578,7 @@ Library.UI_Create ={
 			Parent = ResultFrame 
 		}) 
 		Library:Render("ImageButton", {  
-			ImageColor3 = "Inactive",
+			ImageColor3 = "Active",
 			Name = "GotoButton",
 			AnchorPoint = Vector2.new(1, 0.5),
 			Image = "rbxassetid://90385430770591",
@@ -615,9 +598,14 @@ Library.UI_Create ={
 			ZIndex = Library.ZIndex,
 			AutoButtonColor =false,
 			Name = "Tabbuton",
-			Size = UDim2.new(0, 26, 0, 26),
+			Size = UDim2.new(0, 16 + 8, 0, 22),
 			BorderSizePixel = 0,
 			BackgroundColor3 = "Accent",
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingRight = UDim.new(0, 2),
+			PaddingLeft = UDim.new(0, 2),
+			Parent = Tabbuton 
 		}) 
 		Library:Render("UICorner", {  
 			TopLeftRadius = UDim.new(0, 4),
@@ -631,11 +619,10 @@ Library.UI_Create ={
 			ScaleType = Enum.ScaleType.Fit,
 			Name = "TabImage",
 			Size = UDim2.new(0, 16, 0, 16),
-			AnchorPoint = Vector2.new(0.5, 0.5),
+			AnchorPoint = Vector2.new(0, 0.5),
 			ZIndex = Library.ZIndex,
-			Image = "rbxassetid://72732892493295",
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Position = UDim2.new(0, 4, 0.5, 0),
 			BorderSizePixel = 0,
 			Parent = Tabbuton 
 		}) 
@@ -647,7 +634,20 @@ Library.UI_Create ={
 			},
 			Parent = Tabbuton 
 		}) 
-
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			Name = "TabTitle",
+			TextColor3 = "DarkText",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Position = UDim2.new(0,16+ 3 + 4,0,0),
+			Size = UDim2.new(0, 0, 1, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			ClipsDescendants = true,
+			TextSize = 12,
+			Parent = Tabbuton 
+		}) 
 		return Tabbuton
 	end,
 	NewWindowPage = function()
@@ -1452,7 +1452,114 @@ Library.UI_Create ={
 		}) 
 		return NewOptionContainer
 	end,
-
+	NewKeybindContainer = function()
+		
+		local KeybindContainer = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 0, 16),
+			BackgroundTransparency = 1,
+			Name = "KeybindContainer",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "DarkText",
+			Name = "KeybindTitle",
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Size = UDim2.new(0, 50, 1, 0),
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = KeybindContainer 
+		}) 
+		Library:Render("ImageButton", {  
+			ImageColor3 = "Inactive",
+			Name = "KeybindWidget",
+			Size = UDim2.new(0, 16, 0, 16),
+			AnchorPoint = Vector2.new(1, 0.5),
+			Image = "rbxassetid://72732892493295",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 0, 0.5, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Parent = KeybindContainer 
+		}) 
+		local KeybindFrame = Library:Render("TextButton", {  
+			Text = "",
+			AnchorPoint = Vector2.new(1, 0.5),
+			BackgroundColor3="LightContrast",
+			Name = "KeybindFrame",
+			Position = UDim2.new(1, -23, 0.5, 0),
+			AutomaticSize = Enum.AutomaticSize.X,
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 0, 0, 16),
+			Parent = KeybindContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = KeybindFrame 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingRight = UDim.new(0, 11),
+			PaddingLeft = UDim.new(0, 11),
+			Parent = KeybindFrame 
+		}) 
+		local Bindingkeytext = Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextDirection = Enum.TextDirection.RightToLeft,
+			TextColor3 = "DarkText",
+			Name = "Bindingkeytext",
+			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.new(0, 0, 0, 12),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Right,
+			BorderSizePixel = 0,
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = KeybindFrame 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingBottom = UDim.new(0, 2),
+			PaddingTop = UDim.new(0, 1),
+			Parent = Bindingkeytext 
+		}) 
+		Library:Render("ImageLabel", {  
+			LayoutOrder = 1,
+			Name = "KeybindIcon",
+			Size = UDim2.new(0, 15, 0, 15),
+			Image = "rbxassetid://127234352005171",
+			BackgroundTransparency = 1,
+			ImageColor3 = "Accent",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Parent = KeybindFrame 
+		}) 
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			Padding = UDim.new(0, 7),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = KeybindFrame 
+		}) 
+		Library:Render("UIStroke", {  
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = KeybindFrame 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = KeybindFrame 
+		}) 
+	return KeybindContainer
+	end,
 }
 
 local Tab = Library.Tabs;
@@ -1464,29 +1571,33 @@ ModuleDock.__index = Library.ModuleDock
 
 function Library:Window(Data) 
 	local Data = Data or {} 
-	local Window = {Title = Data.Title or Data.title,Game=Data.Game or Data.game,firsttab=true,tabs={},SearchOpened=false}
+	local Window = {Title = Data.Title or Data.title,Game=Data.Game or Data.game,tabs={},SearchOpened=false}
 
-
-	local NewWindow = Library.UI_Create:NewWindow()
-
+	local NewWindow,Blur = Library.UI_Create:NewWindow()
 	NewWindow.Parent =  localPlayer:WaitForChild("PlayerGui")-- game:GetService("CoreGui")
 	NewWindow["WindowHeader"]["UiTitle"].Text = Window.Title
 	NewWindow["WindowHeader"]["GameTitle"].Text = Window.Game
 	
-	local NewResultContainer = Library.UI_Create:NewResultContainer()
-	NewResultContainer.Parent = NewWindow["WindowHeader"]["SearchFrame"]
 	task.spawn(function() 
 		-- this was the fucking solution all along, i was trying to find a way to run this code before subtab animation during runtime because this piece of shit code would be delaying during runtime and fuck up subtab size until you click, thank god i was looking at task library and found this miracle
-		task.wait(0.2)
+		task.wait(0.3) -- sometimes the tabs size goes crazy
 		NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1440	
 
 		Library:storeEvent(camera:GetPropertyChangedSignal('ViewportSize'),function()
 			NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1440
 		end)
+		
 	end)
+
+	
+	local NewResultContainer = Library.UI_Create:NewResultContainer()
+	NewResultContainer.Parent = NewWindow["WindowHeader"]["SearchFrame"]
+	
+
 	Window.ResultsConnection = {} -- yep i am not using storeEvent this time because when i destroy the result the connection wont go away unless i unload
 	Window.Results = {}
-	function Window:AddResult(Self)
+	
+	function Window:AddResult(Self: {any}) 
 		if table.find(Window.Results,Self) then return end
 		Window.Results[#Window.Results + 1] = Self
 		local NewResultFrame = Library.UI_Create:NewResultFrame()
@@ -1502,6 +1613,14 @@ function Library:Window(Data)
 			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = ""
 			self:ClearResults()
 		end)
+	end
+	function Window:RemoveResult(Self: {any})
+		if table.find(Window.Results,Self)  then 	Window.Results[Self] = nil  end
+		for _, Resultframe in pairs(NewResultContainer:GetChildren()) do 
+			if Resultframe.Name == Self.Title and Resultframe:IsA("Frame") then 
+				Resultframe:Destroy()
+			end
+		end
 	end
 	function Window:ClearResults()
 		table.clear(Window.Results)
@@ -1533,8 +1652,9 @@ function Library:Window(Data)
 				Library:CloseAllActives()
 				Library.Actives[#Library.Actives + 1] = self
 			end
+			
 			self.SearchOpened = bool
-			for i,tabs in pairs(self.tabs) do 
+			for _,tabs in pairs(self.tabs) do 
 				if tabs.Opened then 
 					tabs:Open(false)
 				end
@@ -1548,29 +1668,45 @@ function Library:Window(Data)
 	end
 	Library:storeEvent(NewWindow["WindowHeader"]["SearchToggleButton"].MouseButton1Down,function()
 		Window:OpenSearch(not Window.SearchOpened)
+		
 	end)
-	--> This part down here was harder than i expected but i somehow got lucky when i used string.len lol
+	--> This part down here was harder than i expected but i somehow got lucky when i used string.len lol. Update: so many bugs and i am here stuck
 	Library:storeEvent(NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]:GetPropertyChangedSignal("Text"), function(TextIndex)
 		if Window.SearchOpened then 
 		local TextLowered = string.lower(NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text)
-			for ModuleIndex,Module in ipairs(Library.Elements) do
-				local start_index, end_index = string.find(string.lower(Module.Title),TextLowered) 
-				if Module.Dock.Identification ~= "Settings" and TextLowered ~= "" and string.find(string.lower(Module.Title),TextLowered) and end_index <= string.len(TextLowered) then
-					if NewResultContainer:FindFirstChildWhichIsA("Frame") then
-						NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text =NewResultContainer:FindFirstChildWhichIsA("Frame").Name --! reminder: use string.format and remove the index letters by the search input
-					end
-					print(Module.Title)
-					Window:AddResult(Module)
-				elseif TextLowered == "" then
-					NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = ""
+			for _,Module in ipairs(Library.Elements) do
+				
+				local start_index, end_index = string.find(string.lower(Module.Title),TextLowered)
+				if TextLowered == "" then
 					Window:ClearResults()
-					
+					NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = ""
+				end
+				if  Module.Dock.Identification ~= "Settings" and TextLowered ~= ""  then 
+					if string.find(string.lower(Module.Title),string.lower(Module.Title):sub(string.len(TextLowered))) and not TextLowered:match("[^%w%s]")  and end_index == string.len(TextLowered) then
+						print("Found" .. Module.Title)
+						Window:AddResult(Module)
+					if NewResultContainer:FindFirstChildWhichIsA("Frame")  then
+						NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = Module.Title:gsub(string.sub(TextLowered,string.len(TextLowered)  ), " ") --! reminder: use string.format and remove the index letters by the search input
 					end
+					else 
+						print("not Found" .. Module.Title)
+
+					Window:RemoveResult(Module)
+
+
+							end
+						end
 				end
 			end
 	end)
 
-
+	Library:storeEvent(UserInputService.InputBegan,function(Input,GPE)
+		if  GPE and Window.SearchOpened and  Input.KeyCode == Enum.KeyCode.Right then 
+			print("pressed")
+			
+			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text = NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text
+		end
+	end)
 
 	Library:storeEvent(NewWindow["WindowHeader"]["HidetabbarButton"].MouseButton1Down,function()
 		Window:HideHeader(not Window.WindowHeaderVis)
@@ -1596,12 +1732,13 @@ end
 
 function Library:Tab(Data) 
 	local Data = Data or {} 
-	local Tab = {window = self, firstsubtab = true, Opened = false, Image = Data.Image or Data.image or nil, subtabs = Data.Subtabs or Data.subtabs or false,}
+	local Tab = {window = self, firstsubtab = true, Title = Data.Title or Data.title or "Tab", Opened = false, Image = Data.Image or Data.image or nil, subtabs = Data.Subtabs or Data.subtabs or false,}
 
 	local NewTabFrame = Library.UI_Create:NewTabFrame()
 	NewTabFrame.Parent = self.Container["WindowHeader"]["TabContainer"]
 	NewTabFrame["TabImage"].Image = Tab.Image
-
+	NewTabFrame["TabTitle"].Text = Tab.Title
+	
 	local newWindowPage = Library.UI_Create:NewWindowPage()
 	newWindowPage.Parent = self.Container
 	Tab.Windowpage = newWindowPage
@@ -1624,25 +1761,18 @@ function Library:Tab(Data)
 		NewpagecontainerinsideWindow = nil -- garbage collection
 
 	end
-	Library:storeEvent(NewTabFrame.MouseEnter,function()
-		if not Tab.Opened then 
-			TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 =  Library.Theme.Active}):Play()
-			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  Library.Theme.Active )
-		end
-	end)
-	Library:storeEvent(NewTabFrame.MouseLeave,function()
-		if not Tab.Opened then 
-			TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 =  Library.Theme.Inactive}):Play()
-			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  Library.Theme.Inactive )
-		end
-	end)
 
 	function Tab:Open(bool: boolean)
+		if self.window.SearchOpened then self.window:OpenSearch(false) end
 		newWindowPage.Visible = bool
 		self.Opened = bool
-		TweenService:Create(NewTabFrame, Library.TweenInfo, {BackgroundTransparency = bool and 0 or 1}):Play()
+		TweenService:Create(NewTabFrame, Library.TweenInfo, {BackgroundTransparency = bool and 0 or 1,Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 16 + 8, 0,22) or UDim2.new(0,28,0,22) }):Play() -- 18 = Icon size, 9 = spacing between icon 
+
 		TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
 		Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
+		TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText, Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99) ,1,0) or UDim2.new(0,0,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
+		Library:UpdateObject(NewTabFrame["TabTitle"], "TextColor3",   bool and Library.Theme.LightText or Library.Theme.DarkText)
+
 	end
 	function Tab:Goto()
 		if not self.Opened then
@@ -1656,10 +1786,25 @@ function Library:Tab(Data)
 		end
 	end
 
-	if self.firsttab then 
-		Tab:Goto()
-		self.firsttab = nil 
-	end 
+
+	Library:storeEvent(NewTabFrame.MouseEnter,function()
+		if not Tab.Opened then 
+			TweenService:Create(NewTabFrame, Library.TweenInfo, { Size =UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.Container["UIScale"].Scale,0,0.99)  + 16+ 8 , 0,22) }):Play() 
+			TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, { Size =   UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.Container["UIScale"].Scale,0,0.99) ,1,0)}):Play()  
+
+			TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 =  Library.Theme.Active}):Play()
+			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  Library.Theme.Active )
+		end
+	end)
+	Library:storeEvent(NewTabFrame.MouseLeave,function()
+		if not Tab.Opened then 
+			TweenService:Create(NewTabFrame, Library.TweenInfo, { Size =UDim2.new(0,28,0,22)}):Play() -- 18 = Icon size, 9 = spacing between icon 
+			TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, { Size =   UDim2.new(0,0 ,1,0)}):Play() -- 18 = Icon size, 9 = spacing between icon 
+
+			TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 =  Library.Theme.Inactive}):Play()
+			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  Library.Theme.Inactive )
+		end
+	end)
 
 	Library:storeEvent(NewTabFrame.MouseButton1Down,function()
 		if  Tab.Opened then 
@@ -1682,7 +1827,7 @@ function Tab:Subtab(Data)
 
 	if self.subtabs then   
 		local Data = Data or {}
-		local Subtab = {tab = self,window=self.window,issubtab = true,Title = Data.Title or Data.title or "Tab", Image = Data.Image or Data.image or nil, }
+		local Subtab = {tab = self,Identification = "SubPage", window=self.window,issubtab = true,Title = Data.Title or Data.title or "Tab", Image = Data.Image or Data.image or nil, }
 
 		local NewSubTab = Library.UI_Create:NewSubTab()
 		NewSubTab.Parent = self.Container[2]
@@ -1710,7 +1855,9 @@ auto scaling to my UI, than it took me 2 hours to research, experiment, and come
 		end
 
 		function Subtab:Goto() -- gonna need this for search function
+			
 			self.tab:Goto()
+			
 			self.tab.Container[1]["UIPageLayout"]:JumpTo(self.tab.Container[1][self.Title])
 
 		end
@@ -1749,6 +1896,7 @@ auto scaling to my UI, than it took me 2 hours to research, experiment, and come
 
 		Library:storeEvent(NewSubTab.MouseButton1Down,function()
 			Subtab:Goto()
+			
 		end)
 
 		Subtab.Windowpage = self.Windowpage
@@ -1759,6 +1907,7 @@ end
 function Tab:Section(Data) 
 	local Data = Data or {}
 	local Section = {page = self,WindowPage=self.Windowpage,Side = Data.Side or Data.side or "Left",Pages={}, Title = Data.Title or Data.title or "", SubSections = Data.group or Data.Group or false,Firstsectiontab = true,}
+	Section.PageInfo = self.Identification == "SubPage" and string.format("%s/%s",self.Title,self.page.Title) or string.format("%s",self.Title)
 
 	if Section.SubSections then
 		local NewMultiSectionFrame,Pages = Library.UI_Create:NewMultiSectionFrame()
@@ -1783,8 +1932,9 @@ function ModuleDock:Section_Page(Data)
 	if self.SubSections then   
 		local Data = Data or {}
 		local SectionTab = {Section=self,page=self.page,Tab=self.tab,Title = Data.Title or Data.title or "",Opened = false,}
+		SectionTab.PageInfo = `{self.PageInfo} / { SectionTab.Title}`
 		SectionTab.Windowpage = self.Windowpage
-
+		
 		local NewMultiSectionTab,Page = Library.UI_Create:NewMultiSectionTab()
 		NewMultiSectionTab.Parent = self.Container[1]["SectionTabBar"]
 		NewMultiSectionTab.Text = SectionTab.Title
@@ -1811,12 +1961,14 @@ function ModuleDock:Section_Page(Data)
 				end
 			end
 		end
-		if self.Firstsectiontab then 
-			SectionTab:Goto()
-			self.Firstsectiontab = nil 
-		end
+	--	if self.Firstsectiontab then 
+	--		SectionTab:Goto()
+		--	self.Firstsectiontab = nil 
+		--end
 		Library:storeEvent(NewMultiSectionTab.MouseButton1Down,function()
-			if not SectionTab.Opened then 
+			if  SectionTab.Opened then 
+				SectionTab:Open(false)
+			else 
 				SectionTab:Open(true)
 				for _,Tabs in pairs(self.Pages) do 
 					if Tabs ~= SectionTab and Tabs.Opened then 
@@ -1824,6 +1976,7 @@ function ModuleDock:Section_Page(Data)
 					end
 				end
 			end
+	
 		end)
 		self.Pages[#self.Pages + 1] = SectionTab
 		SectionTab.Container = Page
@@ -1831,10 +1984,113 @@ function ModuleDock:Section_Page(Data)
 
 	end
 end
+function ModuleDock:Keybind(Data)
+	local Data = Data or {}
+	local Keybind = {Identification = "Keybind",Dock=self,Title = Data.Title or Data.title or "Keybind",Mode = Data.Mode or Data.mode or "Toggle", Bind = Data.Bind or Data.bind or "Q", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function() end}
+	if self.Identification ~= "Settings" then Keybind.PageInfo = self.PageInfo end
+
+	local Focused, Holding = false, false
+	local holdmode = Keybind.Mode == "Hold" and true or false
+	local togglemode = Keybind.Mode == "Toggle" and true or false
+	local Alwaysmode = Keybind.Mode == "Always" and true or false
+	
+	if Alwaysmode then 
+		Keybind.Value = true 
+		Keybind.Callback(true)
+	end
+	local modes = {"Toggle", "Hold","Always"}
+	
+	local NewKeybindContainer = Library.UI_Create:NewKeybindContainer()
+	NewKeybindContainer["KeybindTitle"].Text = Keybind.Title
+	NewKeybindContainer.Parent = self.Container
+	function Keybind:DirectTo() --> For search
+		--
+		if self.Dock.Identification == "Settings" then return end
+		self.Dock.Goto()
+		--> to catch the user attention <--
+		TweenService:Create(NewKeybindContainer["KeybindTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
+		Library:UpdateObject(NewKeybindContainer["KeybindTitle"],"TextColor3", Library.Theme.Accent )
+		task.wait(2)
+		TweenService:Create(NewKeybindContainer["KeybindTitle"], Library.TweenInfo,{ TextColor3= Library.Theme.DarkText }):Play()
+		Library:UpdateObject(NewKeybindContainer["KeybindTitle"],"TextColor3",Library.Theme.DarkText )
+	end
+	function Keybind:CheckKey(tab, key)
+		for _, v in next, tab do 
+			if v == key then 
+				return true 
+			end 
+		end
+	end
+	
+	function Keybind:SetMode(NewMode:string)
+		self.Mode = NewMode
+	end
+	function Keybind:Set(NewKey)
+		Focused = false
+		Keybind.Bind = NewKey
+		Library.Flags[Keybind.Title] = {["Bind"] = tostring(Keybind.Bind),["Mode"] = tostring(Keybind.Mode)}
+
+		if not Focused then
+			NewKeybindContainer["KeybindFrame"]["Bindingkeytext"].Text = Library.short_keybind_names[tostring(Keybind.Bind)]  or tostring(Keybind.Bind):upper()
+		end
+	end
+	Keybind:Set(Keybind.Bind)
+	Library:storeEvent(UserInputService.InputBegan, function(Input) 
+		if (Input.KeyCode.Name == Keybind.Bind or Input.UserInputType.Name == Keybind.Bind) and not Focused then
+			if Alwaysmode then
+				Keybind.Value = true
+				Keybind.Callback(Keybind.Value)
+			end
+			if holdmode then
+				Holding = true
+				Keybind.Value = Holding
+				Keybind.Callback(Keybind.Value)
+			elseif not Focused and togglemode then
+				Keybind.Value = not Keybind.Value
+				Keybind.Callback(Keybind.Value)
+			end
+		elseif Focused then
+			local key
+			pcall(function()
+				if not Keybind:CheckKey(Library.BlacklistedKeys, Input.KeyCode) then
+					key = Input.KeyCode
+					NewKeybindContainer["KeybindFrame"]["KeybindIcon"].Image = "rbxassetid://127234352005171"
+
+				end
+				if Keybind:CheckKey(Library.WhitelistedMouse, Input.UserInputType)  then
+					key = Input.UserInputType
+					NewKeybindContainer["KeybindFrame"]["KeybindIcon"].Image = "rbxassetid://138543267637348"
+				end
+			end)
+
+			Keybind:Set(key.Name or Keybind.Bind)
+		end
+	end)
+	Library:storeEvent(UserInputService.InputEnded, function(Input)
+		if Input.KeyCode.Name == Keybind.Bind or Input.UserInputType.Name ==Keybind.Bind then
+			if holdmode and Holding then
+				Holding = false
+				Keybind.Value = Holding
+				Keybind.Callback(Holding)
+			end
+		end
+	end)
+	
+	Library:storeEvent(NewKeybindContainer["KeybindFrame"].MouseButton1Click, function()
+		if Focused ~= true then
+			Focused = true
+			NewKeybindContainer["KeybindFrame"]["Bindingkeytext"].Text = "..."
+
+		end
+	end)
+	Library.Elements[#Library.Elements + 1] = Keybind
+
+	return setmetatable(Keybind,Library.ModuleDock)
+end
 function ModuleDock:Dropdown(Data)
 	local Data = Data or {}
-	local Dropdown = {Dock = self,Opened = false,Combo = Data.Combo or Data.combo or false, Title = Data.Title or Data.title or "Dropdown", Value = Data.Value or Data.value or "" ,Options = Data.Options or Data.options or {"1","2"},Callback=Data.Callback or Data.callback }
-	if self.Identification ~= "Settings" then Dropdown.PageInfo = string.format("Page: %s",self.page.Title) end
+	local Dropdown = {Dock = self,Opened = false,Combo = Data.Combo or Data.combo or false, Title = Data.Title or Data.title or "Dropdown", Value = Data.Value or Data.value or "" ,Options = Data.Options or Data.options or {"1","2"},Callback=Data.Callback or Data.callback or function() end }
+	if self.Identification ~= "Settings" then Dropdown.PageInfo = self.PageInfo end
 	local NewDropdown = Library.UI_Create:NewDropdown()
 	NewDropdown.Parent = self.Container
 	NewDropdown["DropdownTitle"].Text = Dropdown.Title
@@ -1959,11 +2215,11 @@ function ModuleDock:Dropdown(Data)
 	Library.Elements[#Library.Elements + 1] = Dropdown
 	return setmetatable(Dropdown,Library.ModuleDock)
 end
-function ModuleDock:Toggle(Data)
+function ModuleDock:Toggle(Data) 
 	local Data = Data or {}
-	local Toggle = {Identification = "Toggle",Dock = self,Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback}
+	local Toggle = {Identification = "Toggle",Dock = self,Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function()end}
 	
-	if self.Identification ~= "Settings" then Toggle.PageInfo = string.format("Page: %s",self.page.Title) end
+	if self.Identification ~= "Settings" then Toggle.PageInfo = self.PageInfo end
 
 	local NewToggle = Library.UI_Create:NewToggle()
 	NewToggle.Parent = self.Container
@@ -1983,6 +2239,7 @@ function ModuleDock:Toggle(Data)
 
 	function Toggle:Set(NewValue:boolean)
 		self.Value = NewValue 
+		self.Callback(NewValue) 
 		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = NewValue and Library.Theme.LightText or Library.Theme.DarkText}):Play()
 		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", NewValue and Library.Theme.LightText or Library.Theme.DarkText)
 		TweenService:Create(NewToggle["Checkbox"], Library.TweenInfo, {BackgroundColor3 = NewValue and Library.Theme.Accent or Library.Theme.DarkContrast}):Play()
@@ -2103,4 +2360,29 @@ function ModuleDock:Button(Data)
 
 	return setmetatable(Button,Library.ModuleDock)
 end
-return Library
+-- if you wonder why a certain module is not saving is due to not having Flag in them, if you want them to save, add Flag in the module table, {Flag = <string>}
+-- All module properties can be uppercase or lowercase 
+
+do 
+	local NewWindow = Library:Window({Title = "Qw hub", Game = "Multicrew Tank Combat"})
+	local CombatTab = NewWindow:Tab({Title = "Combat", Image = "rbxassetid://136879043989014"})
+	local VisualsTab = NewWindow:Tab({Title = "Visuals",Image = "rbxassetid://109514269737059",Subtabs=true})
+	local SettingsTab = NewWindow:Tab({Title = "Settings",Image = "rbxassetid://72732892493295"})
+	
+	local Aimingsections = CombatTab:Section({Group = true})
+	local AimbotSectionPage = Aimingsections:Section_Page({Title = "Aim Assistance"})
+	AimbotSectionPage:Toggle({Title = "electric",Value = false})
+
+	AimbotSectionPage:Toggle({Title = "Auto Prediction",Value = true})
+	AimbotSectionPage:Keybind({Title = "Aim assistance key",Value = false,Bind= "MouseButton2"})
+
+	AimbotSectionPage:Dropdown({combo = true, Title = "Prioritize Bodypart", Options = {"Head","HumanoidRootPart","Right Arm", "Left Arm", "Right Leg", "Left Leg"}})
+	AimbotSectionPage:Toggle({Title = "Ignore Body and prioritize nearest to cursor",Value = false})
+
+	local BulletRedirectionSectionPage = Aimingsections:Section_Page({Title = "Bullet Redirection"})
+	BulletRedirectionSectionPage:Toggle({Title = "Enabled",Value = false})
+	BulletRedirectionSectionPage:Toggle({Title = "Use Hitchance",Value = true})
+	BulletRedirectionSectionPage:Dropdown({combo = true, Title = "Prioritize Bodypart", Options = {"Head","HumanoidRootPart","Right Arm", "Left Arm", "Right Leg", "Left Leg"}})
+	BulletRedirectionSectionPage:Toggle({Title = "Ignore Body and prioritize nearest to cursor",Value = false})
+
+end
