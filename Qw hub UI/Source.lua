@@ -406,7 +406,7 @@ Library.UI_Create ={
 			Position = UDim2.new(0.5, 0, 1, 40),
 			BorderSizePixel = 0,
 			ZIndex = Library.ZIndex,
-			Size = UDim2.new(0, 230, 0, 30),
+			Size = UDim2.new(0, 250, 0, 30),
 			Parent = WindowHeader 
 		}) 
 		Library:Render("UIStroke", {  
@@ -463,6 +463,20 @@ Library.UI_Create ={
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 			BackgroundTransparency = 1,
 			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 12,
+			Parent = Inputbox 
+		}) 
+		Library:Render("TextLabel", {  
+			Name = "Hint",
+			TextColor3 = "DarkText",
+			ZIndex = Library.ZIndex,
+			Text = "Press >",
+			Size = UDim2.new(1, -6, 1, 0),
+			Position = UDim2.new(0, 0, 0, 0),
+			BorderSizePixel = 0,
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Right,
 			TextSize = 12,
 			Parent = Inputbox 
 		}) 
@@ -1560,6 +1574,120 @@ Library.UI_Create ={
 		}) 
 	return KeybindContainer
 	end,
+	NewModeContainer = function()
+		local NoclickDetector = Library:Render("TextButton", {  
+			FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+			Name = "NoclickDetector",
+			AnchorPoint = Vector2.new(1, 0),
+			BorderSizePixel = 0,
+			Visible = false,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 0, 1, 10),
+			Size = UDim2.new(0, 160, 0, 20),
+			ZIndex = Library.ZIndex + 4,
+		}) 
+		local ModeContainer = Library:Render("Frame", {  
+			ClipsDescendants = true,
+			Selectable = true,
+			Name = "ModeContainer",
+			Size = UDim2.new(1, 0, 1, 0),
+			SelectionGroup = true,
+			ZIndex = Library.ZIndex + 5,
+			BorderSizePixel = 0,
+			BackgroundColor3 = "DarkContrast",
+			Parent = NoclickDetector 
+		}) 
+		 Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1, 0),
+			TopRightRadius = UDim.new(1, 0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1, 0),
+			Parent = ModeContainer 
+		}) 
+		Library:Render("UIStroke", {  
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = ModeContainer 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = ModeContainer 
+		}) 
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalFlex = Enum.UIFlexAlignment.Fill,
+			Padding = UDim.new(0, 1),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = ModeContainer 
+		}) 
+		local ToggleMode = Library:Render("TextButton", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "LightText",
+			Text = "Toggle",
+			AutoButtonColor = false,
+			Name = "Toggle",
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 0, 1, 0),
+			ZIndex = Library.ZIndex + 5,
+			TextSize = 12,
+			BackgroundColor3 = "Accent",
+			Parent = ModeContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1, 0),
+			TopRightRadius = UDim.new(1, 0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1, 0),
+			Parent = ToggleMode 
+		}) 
+		local holdMode = Library:Render("TextButton", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "LightText",
+			Text = "Hold",
+			AutoButtonColor = false,
+			Name = "Hold",
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 0, 1, 0),
+			ZIndex = Library.ZIndex + 5,
+			TextSize = 12,
+			BackgroundColor3 = "Accent",
+			Parent = ModeContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1, 0),
+			TopRightRadius = UDim.new(1, 0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1, 0),
+			Parent = holdMode 
+		}) 
+		local Alwaysmode = Library:Render("TextButton", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "LightText",
+			Text = "Always",
+			Name = "Always",
+			AutoButtonColor = false,
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 0, 1, 0),
+			ZIndex = Library.ZIndex + 5,
+			TextSize = 12,
+			BackgroundColor3 = "Accent",
+			Parent = ModeContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1, 0),
+			TopRightRadius = UDim.new(1, 0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1, 0),
+			Parent = Alwaysmode 
+		}) 
+		return NoclickDetector
+	end,
 }
 
 local Tab = Library.Tabs;
@@ -1569,7 +1697,7 @@ Library.__index = Library
 Tab.__index = Library.Tabs
 ModuleDock.__index = Library.ModuleDock
 
-function Library:Window(Data) 
+function Library:Window(Data: {any}) 
 	local Data = Data or {} 
 	local Window = {Title = Data.Title or Data.title,Game=Data.Game or Data.game,tabs={},SearchOpened=false}
 
@@ -1597,8 +1725,8 @@ function Library:Window(Data)
 	Window.ResultsConnection = {} -- yep i am not using storeEvent this time because when i destroy the result the connection wont go away unless i unload
 	Window.Results = {}
 	
-	function Window:AddResult(Self: {any}) 
-		if table.find(Window.Results,Self) then return end
+	function Window:AddResult(Self: {string | thread}) 
+		if table.find(Window.Results,Self) then 	return end --table.remove(self.Results,table.find(self.Results, Self)) end
 		Window.Results[#Window.Results + 1] = Self
 		local NewResultFrame = Library.UI_Create:NewResultFrame()
 		NewResultFrame.Parent = NewResultContainer
@@ -1615,15 +1743,18 @@ function Library:Window(Data)
 		end)
 	end
 	function Window:RemoveResult(Self: {any})
-		if table.find(Window.Results,Self)  then 	Window.Results[Self] = nil  end
+		--> YESSSSS FINALLY I FUCKING FIXED IT, I just copied and pasted the line from my combo value change
+		if table.find(self.Results,Self) then table.remove(self.Results,table.find(self.Results, Self)) end
 		for _, Resultframe in pairs(NewResultContainer:GetChildren()) do 
 			if Resultframe.Name == Self.Title and Resultframe:IsA("Frame") then 
 				Resultframe:Destroy()
 			end
 		end
+
+		
 	end
 	function Window:ClearResults()
-		table.clear(Window.Results)
+		table.clear(self.Results)
 		for _, Resultframe in pairs(NewResultContainer:GetChildren()) do 
 			if Resultframe:IsA("Frame") then 
 				Resultframe:Destroy()
@@ -1673,23 +1804,23 @@ function Library:Window(Data)
 	--> This part down here was harder than i expected but i somehow got lucky when i used string.len lol. Update: so many bugs and i am here stuck
 	Library:storeEvent(NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]:GetPropertyChangedSignal("Text"), function(TextIndex)
 		if Window.SearchOpened then 
-		local TextLowered = string.lower(NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text)
+			local TextLowered = string.lower(NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text)
+			
 			for _,Module in ipairs(Library.Elements) do
-				
 				local start_index, end_index = string.find(string.lower(Module.Title),TextLowered)
+				
 				if TextLowered == "" then
 					Window:ClearResults()
 					NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = ""
 				end
+				
 				if  Module.Dock.Identification ~= "Settings" and TextLowered ~= ""  then 
 					if string.find(string.lower(Module.Title),string.lower(Module.Title):sub(string.len(TextLowered))) and not TextLowered:match("[^%w%s]")  and end_index == string.len(TextLowered) then
-						print("Found" .. Module.Title)
 						Window:AddResult(Module)
 					if NewResultContainer:FindFirstChildWhichIsA("Frame")  then
-						NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = Module.Title:gsub(string.sub(TextLowered,string.len(TextLowered)  ), " ") --! reminder: use string.format and remove the index letters by the search input
+							NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = Module.Title:gsub(string.sub(string.lower(Module.Title),string.len(TextLowered)  ), "") --! reminder: use string.format and remove the index letters by the search input
 					end
 					else 
-						print("not Found" .. Module.Title)
 
 					Window:RemoveResult(Module)
 
@@ -1986,15 +2117,13 @@ function ModuleDock:Section_Page(Data)
 end
 function ModuleDock:Keybind(Data)
 	local Data = Data or {}
-	local Keybind = {Identification = "Keybind",Dock=self,Title = Data.Title or Data.title or "Keybind",Mode = Data.Mode or Data.mode or "Toggle", Bind = Data.Bind or Data.bind or "Q", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function() end}
+	local Keybind = {Identification = "Keybind",Opened = false,Dock=self,Title = Data.Title or Data.title or "Keybind",Mode = Data.Mode or Data.mode or "Toggle", Bind = Data.Bind or Data.bind or "Q", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function() end}
 	if self.Identification ~= "Settings" then Keybind.PageInfo = self.PageInfo end
 
 	local Focused, Holding = false, false
-	local holdmode = Keybind.Mode == "Hold" and true or false
-	local togglemode = Keybind.Mode == "Toggle" and true or false
-	local Alwaysmode = Keybind.Mode == "Always" and true or false
+
 	
-	if Alwaysmode then 
+	if Keybind.Mode == "Always" then 
 		Keybind.Value = true 
 		Keybind.Callback(true)
 	end
@@ -2003,6 +2132,10 @@ function ModuleDock:Keybind(Data)
 	local NewKeybindContainer = Library.UI_Create:NewKeybindContainer()
 	NewKeybindContainer["KeybindTitle"].Text = Keybind.Title
 	NewKeybindContainer.Parent = self.Container
+	
+	local NewModeContainer = Library.UI_Create:NewModeContainer()
+	NewModeContainer.Parent = NewKeybindContainer["KeybindWidget"]
+		
 	function Keybind:DirectTo() --> For search
 		--
 		if self.Dock.Identification == "Settings" then return end
@@ -2014,6 +2147,7 @@ function ModuleDock:Keybind(Data)
 		TweenService:Create(NewKeybindContainer["KeybindTitle"], Library.TweenInfo,{ TextColor3= Library.Theme.DarkText }):Play()
 		Library:UpdateObject(NewKeybindContainer["KeybindTitle"],"TextColor3",Library.Theme.DarkText )
 	end
+	
 	function Keybind:CheckKey(tab, key)
 		for _, v in next, tab do 
 			if v == key then 
@@ -2021,10 +2155,7 @@ function ModuleDock:Keybind(Data)
 			end 
 		end
 	end
-	
-	function Keybind:SetMode(NewMode:string)
-		self.Mode = NewMode
-	end
+
 	function Keybind:Set(NewKey)
 		Focused = false
 		Keybind.Bind = NewKey
@@ -2034,18 +2165,43 @@ function ModuleDock:Keybind(Data)
 			NewKeybindContainer["KeybindFrame"]["Bindingkeytext"].Text = Library.short_keybind_names[tostring(Keybind.Bind)]  or tostring(Keybind.Bind):upper()
 		end
 	end
+	local debounce = false
+	function Keybind:Open(bool:boolean)
+		if not debounce then 
+			if bool then 
+				Library:CloseAllActives()
+				Library.Actives[#Library.Actives] = Keybind
+			end
+			self.Opened = bool
+			TweenService:Create(NewKeybindContainer["KeybindWidget"],Library.TweenInfo,{ImageColor3 =self.Opened and Library.Theme.Active or Library.Theme.Inactive}):Play()
+			Library:UpdateObject(NewKeybindContainer["KeybindWidget"],"ImageColor3",self.Opened and "Active" or "Inactive")
+			NewModeContainer.Visible = self.Opened
+		end
+	end
+
+	function Keybind:SetMode(NewMode:string)
+		self.Mode = NewMode
+		for _,Mode in pairs(NewModeContainer["ModeContainer"]:GetChildren()) do
+			if Mode.Name == NewMode and Mode:IsA("TextButton") then 
+				TweenService:Create(Mode,Library.TweenInfo,{BackgroundTransparency = 0}):Play()
+			elseif Mode.Name ~= NewMode and Mode:IsA("TextButton") then
+				TweenService:Create(Mode,Library.TweenInfo,{BackgroundTransparency = 1}):Play()
+
+			end
+		end
+	end
 	Keybind:Set(Keybind.Bind)
 	Library:storeEvent(UserInputService.InputBegan, function(Input) 
 		if (Input.KeyCode.Name == Keybind.Bind or Input.UserInputType.Name == Keybind.Bind) and not Focused then
-			if Alwaysmode then
+			if Keybind.Mode == "Always" then
 				Keybind.Value = true
 				Keybind.Callback(Keybind.Value)
 			end
-			if holdmode then
+			if  Keybind.Mode == "Hold" then
 				Holding = true
 				Keybind.Value = Holding
 				Keybind.Callback(Keybind.Value)
-			elseif not Focused and togglemode then
+			elseif not Focused and Keybind.Mode == "Toggle" then
 				Keybind.Value = not Keybind.Value
 				Keybind.Callback(Keybind.Value)
 			end
@@ -2068,7 +2224,7 @@ function ModuleDock:Keybind(Data)
 	end)
 	Library:storeEvent(UserInputService.InputEnded, function(Input)
 		if Input.KeyCode.Name == Keybind.Bind or Input.UserInputType.Name ==Keybind.Bind then
-			if holdmode and Holding then
+			if Keybind.Mode == "Hold" and Holding then
 				Holding = false
 				Keybind.Value = Holding
 				Keybind.Callback(Holding)
@@ -2082,6 +2238,18 @@ function ModuleDock:Keybind(Data)
 			NewKeybindContainer["KeybindFrame"]["Bindingkeytext"].Text = "..."
 
 		end
+	end)
+	Library:storeEvent(NewKeybindContainer["KeybindWidget"].MouseButton1Click, function()
+		Keybind:Open(not Keybind.Opened)
+	end)
+	Library:storeEvent(	NewModeContainer["ModeContainer"]["Toggle"].MouseButton1Click, function()
+		Keybind:SetMode("Toggle")
+	end)
+	Library:storeEvent(	NewModeContainer["ModeContainer"]["Hold"].MouseButton1Click, function()
+		Keybind:SetMode("Hold")
+	end)
+	Library:storeEvent(	NewModeContainer["ModeContainer"]["Always"].MouseButton1Click, function()
+		Keybind:SetMode("Always")
 	end)
 	Library.Elements[#Library.Elements + 1] = Keybind
 
@@ -2360,29 +2528,4 @@ function ModuleDock:Button(Data)
 
 	return setmetatable(Button,Library.ModuleDock)
 end
--- if you wonder why a certain module is not saving is due to not having Flag in them, if you want them to save, add Flag in the module table, {Flag = <string>}
--- All module properties can be uppercase or lowercase 
-
-do 
-	local NewWindow = Library:Window({Title = "Qw hub", Game = "Multicrew Tank Combat"})
-	local CombatTab = NewWindow:Tab({Title = "Combat", Image = "rbxassetid://136879043989014"})
-	local VisualsTab = NewWindow:Tab({Title = "Visuals",Image = "rbxassetid://109514269737059",Subtabs=true})
-	local SettingsTab = NewWindow:Tab({Title = "Settings",Image = "rbxassetid://72732892493295"})
-	
-	local Aimingsections = CombatTab:Section({Group = true})
-	local AimbotSectionPage = Aimingsections:Section_Page({Title = "Aim Assistance"})
-	AimbotSectionPage:Toggle({Title = "electric",Value = false})
-
-	AimbotSectionPage:Toggle({Title = "Auto Prediction",Value = true})
-	AimbotSectionPage:Keybind({Title = "Aim assistance key",Value = false,Bind= "MouseButton2"})
-
-	AimbotSectionPage:Dropdown({combo = true, Title = "Prioritize Bodypart", Options = {"Head","HumanoidRootPart","Right Arm", "Left Arm", "Right Leg", "Left Leg"}})
-	AimbotSectionPage:Toggle({Title = "Ignore Body and prioritize nearest to cursor",Value = false})
-
-	local BulletRedirectionSectionPage = Aimingsections:Section_Page({Title = "Bullet Redirection"})
-	BulletRedirectionSectionPage:Toggle({Title = "Enabled",Value = false})
-	BulletRedirectionSectionPage:Toggle({Title = "Use Hitchance",Value = true})
-	BulletRedirectionSectionPage:Dropdown({combo = true, Title = "Prioritize Bodypart", Options = {"Head","HumanoidRootPart","Right Arm", "Left Arm", "Right Leg", "Left Leg"}})
-	BulletRedirectionSectionPage:Toggle({Title = "Ignore Body and prioritize nearest to cursor",Value = false})
-
-end
+return Library
