@@ -7,12 +7,14 @@ Do not sell this UI or claim it as yours. This UI is free to use for anyone and 
 there is no need to feel ashamed to learn or copy code from here, I tried my best to explain 
 some of my code to make it easier to understand. 
 
+* Performance issue oberservation: 500 tabs, hovering the tabs causes FPS reduction from 60ish to 40ish. Thought: it might be from trying to calculate the textbound and Ui scale or too much connections (i doubt this because i know Roblox optimizes rbxscriptsignal)
+* Performance issue observation: 500 tabs, scrolling the tab bar causes FPS reduction from 60ish to 40ish. Thought: It could be from the amount of instances and tabs with threads and RBXSCRIPTSignal connections, and i see no one creating more than 10 tabs so i would ignore fixing this unless it gets serious
 
 ]]
--- Fix search: the filter system is okay but the filter works really bad after the results dont match with the input at times, fix tab: when the Ui is initiated, the first tab auto size is inaccurate and when another tab is clicked the auto size works just fine and it has to do with the UIScale for some reason 
+
 if not game:IsLoaded() then game.Loaded:Wait() end
 
--->Services<--f
+-->Services<--
 local Players = game:GetService("Players");
 local UserInputService = game:GetService("UserInputService");
 --local RunService = game:GetService("RunService");
@@ -169,9 +171,8 @@ function Library:Render(ObjectType: string, Properties)
 			if string.find(Property, "Color") and typeof(Value) == "string" and ObjectType ~= "UIGradient" then
 
 				local Theme = self.Theme[Value]
-				if Property ~= "IgnoreTheme" then 
 					Library:UpdateObject(Object, Property, Value)
-				end 
+				 
 				Object[Property] = Theme
 			else
 				Object[Property] = Value
@@ -1688,6 +1689,342 @@ Library.UI_Create ={
 		}) 
 		return NoclickDetector
 	end,
+	NewColorpickerContainer = function()
+		local ColorPickerContainer = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 0, 15),
+			BackgroundTransparency = 1,
+			Name = "ColorPickerContainer",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		local PalletePickerContainer = Library:Render("Frame", {  
+			AnchorPoint = Vector2.new(1, 0),
+			Name = "PalletePickerContainer",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 0, 0.5, 0),
+			Size = UDim2.new(0, 100, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Parent = ColorPickerContainer 
+		}) 
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = PalletePickerContainer 
+		}) 
+		local PickerButton = Library:Render("TextButton", {  
+			ZIndex = Library.ZIndex,
+			Name = "PickerButton",
+			Size = UDim2.new(0, 15, 1, 0),
+			Text = "",
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Parent = PalletePickerContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = PickerButton 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = PickerButton 
+		}) 
+		Library:Render("UIStroke", {  
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = PickerButton 
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			Name = "ColorpickerTitle",
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Size = UDim2.new(0, 50, 1, 0),
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = ColorPickerContainer 
+		}) 
+
+return ColorPickerContainer
+	end,
+	ColorPaletteContainer = function()
+		local PaletteContainer = Library:Render("Frame", {  
+			Name = "PaletteContainer",
+			Position = UDim2.new(1, 20, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 200, 0, 0),
+		}) 
+		Library:Render("UICorner", {  
+			Parent = PaletteContainer 
+		}) 
+		 Library:Render("UIStroke", {  
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = PaletteContainer 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			Parent = PaletteContainer 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingTop = UDim.new(0, 7),
+			PaddingBottom = UDim.new(0, 14),
+			PaddingRight = UDim.new(0, 10),
+			PaddingLeft = UDim.new(0, 10),
+			Parent = PaletteContainer 
+		}) 
+		local Palette = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 0, 0),
+			Name = "Palette",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 0, 0, 22),
+			BorderSizePixel = 0,
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Parent = PaletteContainer 
+		}) 
+		Library:Render("UIListLayout", {  
+			Padding = UDim.new(0, 9),
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = Palette 
+		}) 
+		local TransparencyButton = Library:Render("TextButton", {  
+			LayoutOrder = 3,
+			Size = UDim2.new(1, -4, 0, 8),
+			Name = "TransparencyButton",
+			Position = UDim2.new(0, 10, 1, -20),
+			Text = "",
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Parent = Palette 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = TransparencyButton 
+		}) 
+		 Library:Render("UIGradient", {  
+		Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+			},
+			Parent = TransparencyButton 
+		}) 
+		local colors = Library:Render("ImageLabel", {  
+			ScaleType = Enum.ScaleType.Tile,
+			Image = "rbxassetid://18274452449",
+			TileSize = UDim2.new(0, 6, 0, 6),
+			Name = "colors",
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Size = UDim2.new(1, 0, 1, 0),
+			Parent = TransparencyButton 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = colors 
+		}) 
+		Library:Render("UIGradient", {  
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+			},
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0.8062499761581421),
+				NumberSequenceKeypoint.new(1, 0)
+			},
+			Parent = colors 
+		}) 
+		local TIndicator = Library:Render("TextButton", {  
+			Text = "",
+			AutoButtonColor = false,
+			AnchorPoint = Vector2.new(0, 0.5),
+			Name = "TIndicator",
+			Position = UDim2.new(0, 0, 0.5, 0),
+			ZIndex = 5,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 8, 0, 8),
+			Parent = TransparencyButton 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1,0),
+			TopRightRadius = UDim.new(1,0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1,0),
+			Parent = TIndicator 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = Color3.fromRGB(255,255,255),
+			Thickness = 2,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = TIndicator 
+		}) 
+		local HueButton = Library:Render("TextButton", {  
+			LayoutOrder = 2,
+			Text = "",
+			AutoButtonColor = false,
+			Name = "HueButton",
+			Position = UDim2.new(0, 10, 1, -40),
+			Size = UDim2.new(1, -4, 0, 8),
+			BorderSizePixel = 0,
+			Parent = Palette 
+		}) 
+		local UIGradient = Library:Render("UIGradient", {  
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
+				ColorSequenceKeypoint.new(0.17,  Color3.fromRGB()),
+				ColorSequenceKeypoint.new(0.33,  Color3.fromRGB()),
+				ColorSequenceKeypoint.new(0.5,  Color3.fromRGB()),
+				ColorSequenceKeypoint.new(0.67,  Color3.fromRGB()),
+				ColorSequenceKeypoint.new(0.83,  Color3.fromRGB()),
+				ColorSequenceKeypoint.new(1,  Color3.fromRGB())
+			},
+			Parent = HueButton 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = HueButton 
+		}) 
+		local HIndicator = Library:Render("TextButton", {  
+			Text = "",
+			AutoButtonColor = false,
+			AnchorPoint = Vector2.new(0, 0.5),
+			Name = "HIndicator",
+			Position = UDim2.new(0, 0, 0.5, 0),
+			ZIndex = 5,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 8, 0, 8),
+			Parent = HueButton 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1,0),
+			TopRightRadius = UDim.new(1,0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1,0),
+			Parent = HIndicator 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = Color3.fromRGB(255,255,255),
+			Thickness = 2,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = HIndicator 
+		}) 
+		local ACtualSVCOlor = Library:Render("Frame", {  
+			LayoutOrder = 1,
+			Name = "ACtualSVCOlor",
+			Position = UDim2.new(0, 7, 0, 20),
+			BorderSizePixel = 0,
+			Size = UDim2.new(1, -4, 0, 100),
+			Parent = Palette 
+		}) 
+		local SVcolorWhitetexture = Library:Render("Frame", {  
+			Name = "SVcolorWhitetexture",
+			Size = UDim2.new(1, 0, 1, 0),
+			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(255,255,255),
+			Parent = ACtualSVCOlor 
+		}) 
+		Library:Render("UIGradient", {  
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0),
+				NumberSequenceKeypoint.new(1, 1)
+			},
+			Parent = SVcolorWhitetexture 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = SVcolorWhitetexture 
+		}) 
+		Library:Render("UICorner", {  
+			Parent = ACtualSVCOlor 
+		}) 
+		local SVIndicator = Library:Render("TextButton", {  
+			Text = "",
+			AutoButtonColor = false,
+			AnchorPoint = Vector2.new(0, 0.5),
+			Name = "SVIndicator",
+			Position = UDim2.new(0, 136, 0.5, 0),
+			ZIndex = 5,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 8, 0, 8),
+			Parent = ACtualSVCOlor 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1,0),
+			TopRightRadius = UDim.new(1,0),
+			BottomRightRadius = UDim.new(1,0),
+			BottomLeftRadius = UDim.new(1,0),
+			Parent = SVIndicator 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = Color3.fromRGB(255,255,255),
+			Thickness = 2,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = SVIndicator 
+		}) 
+		local SVTextureBackground = Library:Render("TextButton", {  
+			BackgroundColor3 = Color3.fromRGB(255,255,255),
+			ZIndex = 2,
+			Name = "SVTextureBackground",
+			Size = UDim2.new(1, 0, 1, 0),
+			Text = "",
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Parent = ACtualSVCOlor 
+		}) 
+	Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = SVTextureBackground 
+		}) 
+		Library:Render("UIGradient", {  
+			Rotation = 270,
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0),
+				NumberSequenceKeypoint.new(1, 1)
+			},
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB())
+			},
+			Parent = SVTextureBackground 
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "LightText",
+			Name = "Palette Title",
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Size = UDim2.new(1, 0, 0, 12),
+			BorderSizePixel = 0,
+			TextSize = 12,
+			Parent = PaletteContainer 
+		}) 
+		return PaletteContainer
+	end,
 }
 
 local Tab = Library.Tabs;
@@ -1722,7 +2059,6 @@ function Library:Window(Data: {any})
 	NewResultContainer.Parent = NewWindow["WindowHeader"]["SearchFrame"]
 	
 
-	Window.ResultsConnection = {} -- yep i am not using storeEvent this time because when i destroy the result the connection wont go away unless i unload
 	Window.Results = {}
 	
 	function Window:AddResult(Self: {string | thread}) 
@@ -1733,13 +2069,13 @@ function Library:Window(Data: {any})
 		NewResultFrame.Name = Self.Title
 		NewResultFrame["ModuleTitle"].Text = Self.Title
 		NewResultFrame["PageInfo"].Text = Self.PageInfo or ""
-		Window.ResultsConnection[#Window.ResultsConnection + 1 ] = NewResultFrame["GotoButton"].MouseButton1Down:Connect(function()
+		NewResultFrame["GotoButton"].MouseButton1Down:Once(function()
+			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text = ""
 			Library:CloseAllActives()
 			self:OpenSearch(false)
 			Self:DirectTo()
-			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text = ""
 			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = ""
-			self:ClearResults()
+			--self:ClearResults()
 		end)
 	end
 	function Window:RemoveResult(Self: {any})
@@ -1760,10 +2096,7 @@ function Library:Window(Data: {any})
 				Resultframe:Destroy()
 			end
 		end
-		for _,Connections in pairs(Window.ResultsConnection) do
-			Connections:Disconnect()
-		end
-	end
+end
 	function Window:HideHeader(bool: boolean)
 		self.WindowHeaderVis = bool
 		TweenService:Create(NewWindow["WindowHeader"]["HidetabbarButton"]["Arrow"], Library.TweenInfo, {Rotation =  bool and 0 or 180}):Play()
@@ -1897,11 +2230,11 @@ function Library:Tab(Data)
 		if self.window.SearchOpened then self.window:OpenSearch(false) end
 		newWindowPage.Visible = bool
 		self.Opened = bool
-		TweenService:Create(NewTabFrame, Library.TweenInfo, {BackgroundTransparency = bool and 0 or 1,Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 16 + 8, 0,22) or UDim2.new(0,28,0,22) }):Play() -- 18 = Icon size, 9 = spacing between icon 
+		TweenService:Create(NewTabFrame, Library.TweenInfo, {BackgroundTransparency = bool and 0 or 1,Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99)  + 16 + 8, 0,22) or UDim2.new(0,28,0,22) }):Play() -- 18 = Icon size, 9 = spacing between icon 
 
 		TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
 		Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
-		TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText, Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99) ,1,0) or UDim2.new(0,0,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
+		TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText, Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99) ,1,0) or UDim2.new(0,0,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
 		Library:UpdateObject(NewTabFrame["TabTitle"], "TextColor3",   bool and Library.Theme.LightText or Library.Theme.DarkText)
 
 	end
@@ -1920,8 +2253,8 @@ function Library:Tab(Data)
 
 	Library:storeEvent(NewTabFrame.MouseEnter,function()
 		if not Tab.Opened then 
-			TweenService:Create(NewTabFrame, Library.TweenInfo, { Size =UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.Container["UIScale"].Scale,0,0.99)  + 16+ 8 , 0,22) }):Play() 
-			TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, { Size =   UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.clamp(self.Container["UIScale"].Scale,0,0.99) ,1,0)}):Play()  
+			TweenService:Create(NewTabFrame, Library.TweenInfo, { Size =UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.Container["UIScale"].Scale,0.99)  + 16+ 8 , 0,22) }):Play() 
+			TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, { Size =   UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.Container["UIScale"].Scale,0.99) ,1,0)}):Play()  
 
 			TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 =  Library.Theme.Active}):Play()
 			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  Library.Theme.Active )
@@ -1964,7 +2297,7 @@ function Tab:Subtab(Data)
 		NewSubTab.Parent = self.Container[2]
 		NewSubTab["SubtabTitle"].Text = Subtab.Title 
 		NewSubTab["SubtabImage"].Image = Subtab.Image 
-		NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4,40 )
+		NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99)  + 18 + 4,40 )
 		local NewSubTabPage = Library.UI_Create:NewSubTabPage()
 		NewSubTabPage.Parent = self.Container[1]
 		NewSubTabPage.Name = Subtab.Title
@@ -1976,12 +2309,11 @@ function Tab:Subtab(Data)
 Boy oh boy, this ahs got the most stressful part of making this ui, as i was making it, i realized that words would get cut off after i added
 auto scaling to my UI, than it took me 2 hours to research, experiment, and come with the final calculation. I HOPE I DONT FIND ANOTHER BUG AGAIN FROM THIS PART AND IF I DO I AM GOING TO CHANGE THE DESIGN
 ]]
-			TweenService:Create(NewSubTab, Library.TweenInfo, {Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4, 1,0) or UDim2.new(0,18,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
+			TweenService:Create(NewSubTab, Library.TweenInfo, {Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.tab.window.Container["UIScale"].Scale,0.99)  + 18 + 4, 1,0) or UDim2.new(0,18,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
 			TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Accent or Library.Theme.Inactive}):Play()
 			Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3", bool and Library.Theme.Accent or Library.Theme.Inactive)
-			TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText,Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99) ,1,0) or UDim2.new(0,0,0) }):Play()
+			TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText,Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.tab.window.Container["UIScale"].Scale,0.99) ,1,0) or UDim2.new(0,0,0) }):Play()
 			Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3", bool and Library.Theme.Accent or Library.Theme.DarkText)
-			--	NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.tab.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4,40 )
 
 		end
 
@@ -1996,10 +2328,10 @@ auto scaling to my UI, than it took me 2 hours to research, experiment, and come
 		Library:storeEvent(NewSubTab.MouseEnter,function()
 
 			if  self.Container[1]["UIPageLayout"].CurrentPage.Name ~= Subtab.Title then 
-				TweenService:Create(NewSubTab, Library.TweenInfo, {Size = UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.clamp(self.window.Container["UIScale"].Scale,0,0.99)  + 18 + 4 , 1,0)}):Play()
+				TweenService:Create(NewSubTab, Library.TweenInfo, {Size = UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99)  + 18 + 4 , 1,0)}):Play()
 				TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = Library.Theme.Active}):Play()
 				Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3",  Library.Theme.Active )
-				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.LightText,Size =  UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) /math.clamp(self.window.Container["UIScale"].Scale,0,0.99), 1,0,1,0) }):Play()
+				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.LightText,Size =  UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) /math.max(self.window.Container["UIScale"].Scale,0.99), 1,0,1,0) }):Play()
 				Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3",  Library.Theme.Active)
 
 			end
@@ -2038,7 +2370,7 @@ end
 function Tab:Section(Data) 
 	local Data = Data or {}
 	local Section = {page = self,WindowPage=self.Windowpage,Side = Data.Side or Data.side or "Left",Pages={}, Title = Data.Title or Data.title or "", SubSections = Data.group or Data.Group or false,Firstsectiontab = true,}
-	Section.PageInfo = self.Identification == "SubPage" and string.format("%s/%s",self.Title,self.page.Title) or string.format("%s",self.Title)
+	Section.PageInfo = self.Identification == "SubPage" and string.format("%s/%s/%s",self.Title,self.page.Title,Section.Title) or string.format("%s/%s",self.Title,Section.Title)
 
 	if Section.SubSections then
 		local NewMultiSectionFrame,Pages = Library.UI_Create:NewMultiSectionFrame()
@@ -2472,7 +2804,23 @@ end
 function ModuleDock:Colorpicker(Data)
 	local Data = Data or {}
 	local Colorpicker = {Identification = "Colorpicker",Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback }
-
+	local Colors = {Hue = nil, Saturation = nil, Value = nil, transparency = nil}
+	local NewColorpickerContainer = Library.UI_Create:NewColorpickerContainer()
+	NewColorpickerContainer.Parent = self.Container
+	NewColorpickerContainer["ColorpickerTitle"].Text = Colorpicker.Title
+	
+	function Colorpicker:Set(color: Color3, Transparency: number?)
+		
+	end
+	function Colorpicker:UpdateHue()
+		
+	end
+	function Colorpicker:UpdateSV()
+		
+	end
+	function Colorpicker:UpdateTransparency()
+		
+	end
 	return setmetatable(Library.ModuleDock,Colorpicker)
 end
 function ModuleDock:Button(Data)
@@ -2529,3 +2877,4 @@ function ModuleDock:Button(Data)
 	return setmetatable(Button,Library.ModuleDock)
 end
 return Library
+end
