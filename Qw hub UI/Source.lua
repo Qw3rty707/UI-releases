@@ -7,8 +7,12 @@ Do not sell this UI or claim it as yours. This UI is free to use for anyone and 
 there is no need to feel ashamed to learn or copy code from here, I tried my best to explain 
 some of my code to make it easier to understand. 
 
+* to add: search guide should also scroll to the element. I noticed that i did not add a element guide with scrolling implemented, so like it wont scroll to the element when you use search
+
+* Bug: tab auto size broke again???? WTF i swear i fixed it last time but something broke it again, i am so frustrated over this 
 * Performance issue oberservation: 500 tabs, hovering the tabs causes FPS reduction from 60ish to 40ish. Thought: it might be from trying to calculate the textbound and Ui scale or too much connections (i doubt this because i know Roblox optimizes rbxscriptsignal)
 * Performance issue observation: 500 tabs, scrolling the tab bar causes FPS reduction from 60ish to 40ish. Thought: It could be from the amount of instances and tabs with threads and RBXSCRIPTSignal connections, and i see no one creating more than 10 tabs so i would ignore fixing this unless it gets serious
+
 
 ]]
 
@@ -69,7 +73,7 @@ local Library = {
 		Font = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 		Size = 12,
 		Name = "Inter",
-		TextStrokeTranspareny = 0,
+		TextStrokeTransparency = 0,
 	},
 
 	Theme = {
@@ -1701,7 +1705,7 @@ Library.UI_Create ={
 			AnchorPoint = Vector2.new(1, 0),
 			Name = "PalletePickerContainer",
 			BackgroundTransparency = 1,
-			Position = UDim2.new(1, 0, 0.5, 0),
+			Position = UDim2.new(1, 0, 0, 0),
 			Size = UDim2.new(0, 100, 1, 0),
 			ZIndex = Library.ZIndex,
 			BorderSizePixel = 0,
@@ -1718,7 +1722,7 @@ Library.UI_Create ={
 		local PickerButton = Library:Render("TextButton", {  
 			ZIndex = Library.ZIndex,
 			Name = "PickerButton",
-			Size = UDim2.new(0, 15, 1, 0),
+			Size = UDim2.new(0, 18, 1, 0),
 			Text = "",
 			BorderSizePixel = 0,
 			AutoButtonColor = false,
@@ -1746,6 +1750,7 @@ Library.UI_Create ={
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 			Name = "ColorpickerTitle",
 			BorderSizePixel = 0,
+			TextColor3 = "DarkText",
 			BackgroundTransparency = 1,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Size = UDim2.new(0, 50, 1, 0),
@@ -1759,7 +1764,9 @@ return ColorPickerContainer
 	ColorPaletteContainer = function()
 		local PaletteContainer = Library:Render("Frame", {  
 			Name = "PaletteContainer",
+			ZIndex = Library.ZIndex,
 			Position = UDim2.new(1, 20, 0, 0),
+			BackgroundColor3 = "DarkContrast",
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BorderSizePixel = 0,
 			Size = UDim2.new(0, 200, 0, 0),
@@ -1786,6 +1793,7 @@ return ColorPickerContainer
 		local Palette = Library:Render("Frame", {  
 			Size = UDim2.new(1, 0, 0, 0),
 			Name = "Palette",
+			ZIndex = Library.ZIndex,
 			BackgroundTransparency = 1,
 			Position = UDim2.new(0, 0, 0, 22),
 			BorderSizePixel = 0,
@@ -1804,7 +1812,9 @@ return ColorPickerContainer
 			Name = "TransparencyButton",
 			Position = UDim2.new(0, 10, 1, -20),
 			Text = "",
+			ZIndex = Library.ZIndex,
 			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(255,255,255),
 			AutoButtonColor = false,
 			Parent = Palette 
 		}) 
@@ -1815,18 +1825,20 @@ return ColorPickerContainer
 			BottomLeftRadius = UDim.new(0, 6),
 			Parent = TransparencyButton 
 		}) 
-		 Library:Render("UIGradient", {  
+		Library:Render("UIGradient", {  
+			Name = "ActualTColor", 
 		Color = ColorSequence.new{
-				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)),
 				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
 			},
 			Parent = TransparencyButton 
 		}) 
-		local colors = Library:Render("ImageLabel", {  
+		local TransparencyImage = Library:Render("ImageLabel", {  
 			ScaleType = Enum.ScaleType.Tile,
 			Image = "rbxassetid://18274452449",
 			TileSize = UDim2.new(0, 6, 0, 6),
-			Name = "colors",
+			Name = "TransparencyImage",
+			ZIndex = Library.ZIndex + 1,
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
 			Size = UDim2.new(1, 0, 1, 0),
@@ -1837,7 +1849,7 @@ return ColorPickerContainer
 			TopRightRadius = UDim.new(0, 6),
 			BottomRightRadius = UDim.new(0, 6),
 			BottomLeftRadius = UDim.new(0, 6),
-			Parent = colors 
+			Parent = TransparencyImage 
 		}) 
 		Library:Render("UIGradient", {  
 			Color = ColorSequence.new{
@@ -1848,7 +1860,7 @@ return ColorPickerContainer
 				NumberSequenceKeypoint.new(0, 0.8062499761581421),
 				NumberSequenceKeypoint.new(1, 0)
 			},
-			Parent = colors 
+			Parent = TransparencyImage 
 		}) 
 		local TIndicator = Library:Render("TextButton", {  
 			Text = "",
@@ -1856,7 +1868,7 @@ return ColorPickerContainer
 			AnchorPoint = Vector2.new(0, 0.5),
 			Name = "TIndicator",
 			Position = UDim2.new(0, 0, 0.5, 0),
-			ZIndex = 5,
+			ZIndex = Library.ZIndex + 2,
 			BorderSizePixel = 0,
 			Size = UDim2.new(0, 8, 0, 8),
 			Parent = TransparencyButton 
@@ -1879,20 +1891,22 @@ return ColorPickerContainer
 			Text = "",
 			AutoButtonColor = false,
 			Name = "HueButton",
+			ZIndex = Library.ZIndex,
+			BackgroundColor3 = Color3.fromRGB(255,255,255),
 			Position = UDim2.new(0, 10, 1, -40),
 			Size = UDim2.new(1, -4, 0, 8),
 			BorderSizePixel = 0,
 			Parent = Palette 
 		}) 
-		local UIGradient = Library:Render("UIGradient", {  
+		Library:Render("UIGradient", {  
 			Color = ColorSequence.new{
-				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
-				ColorSequenceKeypoint.new(0.17,  Color3.fromRGB()),
-				ColorSequenceKeypoint.new(0.33,  Color3.fromRGB()),
-				ColorSequenceKeypoint.new(0.5,  Color3.fromRGB()),
-				ColorSequenceKeypoint.new(0.67,  Color3.fromRGB()),
-				ColorSequenceKeypoint.new(0.83,  Color3.fromRGB()),
-				ColorSequenceKeypoint.new(1,  Color3.fromRGB())
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
+				ColorSequenceKeypoint.new(0.17,  Color3.fromRGB(255,255,0)),
+				ColorSequenceKeypoint.new(0.33,  Color3.fromRGB(0,255,0)),
+				ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(0,255,255)),
+				ColorSequenceKeypoint.new(0.67,  Color3.fromRGB(0,0,255)),
+				ColorSequenceKeypoint.new(0.83,  Color3.fromRGB(255,0,255)),
+				ColorSequenceKeypoint.new(1,  Color3.fromRGB(255,0,0))
 			},
 			Parent = HueButton 
 		}) 
@@ -1909,7 +1923,7 @@ return ColorPickerContainer
 			AnchorPoint = Vector2.new(0, 0.5),
 			Name = "HIndicator",
 			Position = UDim2.new(0, 0, 0.5, 0),
-			ZIndex = 5,
+			ZIndex = Library.ZIndex,
 			BorderSizePixel = 0,
 			Size = UDim2.new(0, 8, 0, 8),
 			Parent = HueButton 
@@ -1930,7 +1944,7 @@ return ColorPickerContainer
 		local ACtualSVCOlor = Library:Render("Frame", {  
 			LayoutOrder = 1,
 			Name = "ACtualSVCOlor",
-			Position = UDim2.new(0, 7, 0, 20),
+			ZIndex = Library.ZIndex,
 			BorderSizePixel = 0,
 			Size = UDim2.new(1, -4, 0, 100),
 			Parent = Palette 
@@ -1938,6 +1952,7 @@ return ColorPickerContainer
 		local SVcolorWhitetexture = Library:Render("Frame", {  
 			Name = "SVcolorWhitetexture",
 			Size = UDim2.new(1, 0, 1, 0),
+			ZIndex = Library.ZIndex,
 			BorderSizePixel = 0,
 			BackgroundColor3 = Color3.fromRGB(255,255,255),
 			Parent = ACtualSVCOlor 
@@ -1946,6 +1961,10 @@ return ColorPickerContainer
 			Transparency = NumberSequence.new{
 				NumberSequenceKeypoint.new(0, 0),
 				NumberSequenceKeypoint.new(1, 1)
+			},
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
 			},
 			Parent = SVcolorWhitetexture 
 		}) 
@@ -1959,13 +1978,9 @@ return ColorPickerContainer
 		Library:Render("UICorner", {  
 			Parent = ACtualSVCOlor 
 		}) 
-		local SVIndicator = Library:Render("TextButton", {  
-			Text = "",
-			AutoButtonColor = false,
-			AnchorPoint = Vector2.new(0, 0.5),
+		local SVIndicator = Library:Render("Frame", {  
 			Name = "SVIndicator",
-			Position = UDim2.new(0, 136, 0.5, 0),
-			ZIndex = 5,
+			ZIndex = Library.ZIndex + 1,
 			BorderSizePixel = 0,
 			Size = UDim2.new(0, 8, 0, 8),
 			Parent = ACtualSVCOlor 
@@ -1985,7 +2000,7 @@ return ColorPickerContainer
 		}) 
 		local SVTextureBackground = Library:Render("TextButton", {  
 			BackgroundColor3 = Color3.fromRGB(255,255,255),
-			ZIndex = 2,
+			ZIndex = Library.ZIndex,
 			Name = "SVTextureBackground",
 			Size = UDim2.new(1, 0, 1, 0),
 			Text = "",
@@ -2015,7 +2030,8 @@ return ColorPickerContainer
 		Library:Render("TextLabel", {  
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 			TextColor3 = "LightText",
-			Name = "Palette Title",
+			Name = "PaletteTitle",
+			ZIndex = Library.ZIndex,
 			BackgroundTransparency = 1,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Size = UDim2.new(1, 0, 0, 12),
@@ -2394,9 +2410,8 @@ end
 function ModuleDock:Section_Page(Data) 
 	if self.SubSections then   
 		local Data = Data or {}
-		local SectionTab = {Section=self,page=self.page,Tab=self.tab,Title = Data.Title or Data.title or "",Opened = false,}
+		local SectionTab = {Section=self,page=self.page,Tab=self.tab,Windowpage=self.Windowpage,Title = Data.Title or Data.title or "",Opened = false,}
 		SectionTab.PageInfo = `{self.PageInfo} / { SectionTab.Title}`
-		SectionTab.Windowpage = self.Windowpage
 		
 		local NewMultiSectionTab,Page = Library.UI_Create:NewMultiSectionTab()
 		NewMultiSectionTab.Parent = self.Container[1]["SectionTabBar"]
@@ -2726,7 +2741,7 @@ function ModuleDock:Toggle(Data)
 	NewToggle["ToggleTitle"].Text = Toggle.Title
 
 	function Toggle:DirectTo() --> For search
-		--
+		
 		if self.Dock.Identification == "Settings" then return end
 		self.Dock.Goto()
 		--> to catch the user attention <--
@@ -2803,24 +2818,114 @@ function ModuleDock:Settings()
 end
 function ModuleDock:Colorpicker(Data)
 	local Data = Data or {}
-	local Colorpicker = {Identification = "Colorpicker",Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback }
-	local Colors = {Hue = nil, Saturation = nil, Value = nil, transparency = nil}
+	local Colorpicker = {Identification = "Colorpicker",Dock = self,Opened = false,Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback or function() end }
+	Colorpicker.Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}
+	
 	local NewColorpickerContainer = Library.UI_Create:NewColorpickerContainer()
 	NewColorpickerContainer.Parent = self.Container
 	NewColorpickerContainer["ColorpickerTitle"].Text = Colorpicker.Title
 	
+	local ColorPaletteContainer = Library.UI_Create:ColorPaletteContainer()
+	ColorPaletteContainer.Visible = false
+	ColorPaletteContainer.Parent = self.Windowpage
+	ColorPaletteContainer["PaletteTitle"].Text = Colorpicker.Title
+	local debounce = false
+	function Colorpicker:Open(bool:boolean)
+		if not debounce then 
+			debounce = true
+			if bool then 
+				Library:CloseAllActives()
+				Library.Actives[#Library.Actives + 1] = self
+			end
+			self.Opened = bool
+			ColorPaletteContainer.Visible = bool
+			task.wait(0.2)
+			debounce = false
+		end
+	end
 	function Colorpicker:Set(color: Color3, Transparency: number?)
+		local H,S,V = color:ToHSV()
+		self.Colors.Hue,self.Colors.Saturation,self.Colors.Brightness,self.Colors.Transparency = H,S,V,Transparency == nil  and self.Colors.transparency or Transparency
+
+		self.Color = Color3.fromHSV(H,S,V)
+		self.transparency = self.Colors.Transparency 
 		
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["ActualTColor"].Color =ColorSequence.new{ColorSequenceKeypoint.new(0,  Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)),ColorSequenceKeypoint.new(1,Color3.fromRGB(122,122,122))}
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].Position =UDim2.new(Colorpicker.Colors.Transparency,0,0.5,0)
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundColor3 =Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency =Colorpicker.Colors.Transparency
+
+		ColorPaletteContainer["Palette"]["HueButton"]["HIndicator"].Position =UDim2.new(Colorpicker.Colors.Hue,0,0.5,0)
+		ColorPaletteContainer["Palette"]["HueButton"]["HIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
+
+		ColorPaletteContainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].Position =UDim2.new(Colorpicker.Colors.Saturation,0,1 -Colorpicker.Colors.Brightness,0)
+		ColorPaletteContainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		ColorPaletteContainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
+
+		NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		Colorpicker.Callback(NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
 	end
-	function Colorpicker:UpdateHue()
+	local function UpdateColorpicker()
+		Colorpicker.Color = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].Transparency)
+		Colorpicker.transparency = Colorpicker.Colors.Transparency
+			
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["ActualTColor"].Color =ColorSequence.new{ColorSequenceKeypoint.new(0,  Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)),ColorSequenceKeypoint.new(1,Color3.fromRGB(122,122,122))}
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].Position =UDim2.new(Colorpicker.Colors.Transparency,0,0.5,0)
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundColor3 =Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency =Colorpicker.Colors.Transparency
 		
-	end
-	function Colorpicker:UpdateSV()
+		ColorPaletteContainer["Palette"]["HueButton"]["HIndicator"].Position =UDim2.new(Colorpicker.Colors.Hue,0,0.5,0)
+		ColorPaletteContainer["Palette"]["HueButton"]["HIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 		
-	end
-	function Colorpicker:UpdateTransparency()
+		ColorPaletteContainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].Position =UDim2.new(Colorpicker.Colors.Saturation,0,1 -Colorpicker.Colors.Brightness,0)
+		ColorPaletteContainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		ColorPaletteContainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 		
+		NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		
+		Colorpicker.Callback(NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
 	end
+	local function UpdateHue()
+		local MouseOnHuePallete = math.clamp(Mouse.X - ColorPaletteContainer["Palette"]["HueButton"].AbsolutePosition.X,0,ColorPaletteContainer["Palette"]["HueButton"].AbsoluteSize.X) / ColorPaletteContainer["Palette"]["HueButton"].AbsoluteSize.X
+
+		Colorpicker.Colors.Hue = MouseOnHuePallete
+		UpdateColorpicker()
+	end
+	local function UpdateSV()
+		local MouseOnSaturationPallete = math.clamp(Mouse.X - ColorPaletteContainer["Palette"]["ACtualSVCOlor"].AbsolutePosition.X,0,ColorPaletteContainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.X) / ColorPaletteContainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.X
+		local MouseOnBrightnessPallete =  math.clamp(Mouse.Y - ColorPaletteContainer["Palette"]["ACtualSVCOlor"].AbsolutePosition.Y,0,ColorPaletteContainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.Y) / ColorPaletteContainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.Y
+
+		Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness = MouseOnSaturationPallete, 1 - MouseOnBrightnessPallete
+		UpdateColorpicker()
+	end
+
+	local function UpdateTransparency()
+		local MouseOntransparencyBar = math.clamp(Mouse.X - ColorPaletteContainer["Palette"]["TransparencyButton"].AbsolutePosition.X,0,ColorPaletteContainer["Palette"]["TransparencyButton"].AbsoluteSize.X) / ColorPaletteContainer["Palette"]["TransparencyButton"].AbsoluteSize.X
+
+		Colorpicker.Colors.Transparency = MouseOntransparencyBar
+		UpdateColorpicker()
+	end
+	Library:storeEvent(NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].MouseButton1Down,function()
+			Colorpicker:Open(not Colorpicker.Opened)
+			
+	end)
+	Library:storeEvent(ColorPaletteContainer["Palette"]["HueButton"].MouseButton1Down,function()
+		while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
+			UpdateHue()
+		end
+	end)
+	Library:storeEvent(ColorPaletteContainer["Palette"]["ACtualSVCOlor"]["SVTextureBackground"].MouseButton1Down,function()
+		while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
+			UpdateSV()
+		end
+		end)
+		Library:storeEvent(ColorPaletteContainer["Palette"]["TransparencyButton"].MouseButton1Down,function()
+			while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
+				UpdateTransparency()
+			end
+	end)
+	Colorpicker:Set(Colorpicker.Color,Colorpicker.transparency)
+	Library.Elements[#Library.Elements + 1] = Colorpicker
 	return setmetatable(Library.ModuleDock,Colorpicker)
 end
 function ModuleDock:Button(Data)
@@ -2877,4 +2982,3 @@ function ModuleDock:Button(Data)
 	return setmetatable(Button,Library.ModuleDock)
 end
 return Library
-end
