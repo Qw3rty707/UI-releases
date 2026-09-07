@@ -9,7 +9,7 @@ some of my code to make it easier to understand.
 
 * to add: search guide should also scroll to the element. I noticed that i did not add a element guide with scrolling implemented, so like it wont scroll to the element when you use search
 
-* Bug: tab auto size broke again???? WTF i swear i fixed it last time but something broke it again, i am so frustrated over this 
+* Bug: tab auto size broke again???? WTF i swear i fixed it last time but something broke it again, i am so frustrated over this . Solution: remove it
 * Performance issue oberservation: 500 tabs, hovering the tabs causes FPS reduction from 60ish to 40ish. Thought: it might be from trying to calculate the textbound and Ui scale or too much connections (i doubt this because i know Roblox optimizes rbxscriptsignal)
 * Performance issue observation: 500 tabs, scrolling the tab bar causes FPS reduction from 60ish to 40ish. Thought: It could be from the amount of instances and tabs with threads and RBXSCRIPTSignal connections, and i see no one creating more than 10 tabs so i would ignore fixing this unless it gets serious
 
@@ -66,7 +66,6 @@ local Library = {
 	Flags = {}, --> stores the modules 
 	Tabs = {}, --> stores tabs
 	Elements = {},
-	Folder = "Qw Hub/ Universal", --> folder directory 
 
 	--> text configuration  <--
 	Text = {
@@ -156,7 +155,7 @@ function Library:ToRGB(color: Color3)
 end
 
 --> this is to like automatically adapt to a new theme that a object does so whenever like a toggle is toggled and i change it to accent and text to light text than i will update it so when you change theme it wont change the toggle main color 
-function Library:UpdateObject(Object:Instance, Property:any, Value:any)
+function Library:UpdateObject(Object:Instance, Property:any, Value:string)
 	if not self.InstanceStorage[Object] then
 		self.InstanceStorage[Object] = {[Property] = Value}
 	else
@@ -224,9 +223,8 @@ function Library:ListConfigFiles()
 	-- List the config files, remove the directory string and isolate the file name 
 end
 
-function Library:SaveConfig(Title:string,Description:string,Author:string,branchFolder:string?)
-	if branchFolder then self.Folder = branchFolder end 
-	if not isfolder(self.Folder) then makefolder(self.Folder) end
+function Library:SaveConfig(Folder:string,Title:string,Description:string,Author:string)
+	if not isfolder(Folder) then makefolder(Folder) end
 	for _, Element in pairs(Library.Elements) do 
 		if Element.Flag and Element.Flag ~= ""   then 
 
@@ -616,14 +614,23 @@ Library.UI_Create ={
 			BackgroundTransparency = 1,
 			ZIndex = Library.ZIndex,
 			AutoButtonColor =false,
+			AutomaticSize = Enum.AutomaticSize.X,
 			Name = "Tabbuton",
-			Size = UDim2.new(0, 16 + 8, 0, 22),
+			Size = UDim2.new(0, 0, 0, 22),
 			BorderSizePixel = 0,
 			BackgroundColor3 = "Accent",
 		}) 
+		 Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 3),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent =Tabbuton
+		}) 
+
 		Library:Render("UIPadding", {  
-			PaddingRight = UDim.new(0, 2),
-			PaddingLeft = UDim.new(0, 2),
+			PaddingRight = UDim.new(0, 4),
+			PaddingLeft = UDim.new(0, 4),
 			Parent = Tabbuton 
 		}) 
 		Library:Render("UICorner", {  
@@ -659,9 +666,9 @@ Library.UI_Create ={
 			TextColor3 = "DarkText",
 			ZIndex = Library.ZIndex,
 			BorderSizePixel = 0,
-			Position = UDim2.new(0,16+ 3 + 4,0,0),
 			Size = UDim2.new(0, 0, 1, 0),
 			BackgroundTransparency = 1,
+			AutomaticSize = Enum.AutomaticSize.X,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			ClipsDescendants = true,
 			TextSize = 12,
@@ -824,22 +831,29 @@ Library.UI_Create ={
 	end,
 	NewSubTab = function()
 		local Subtab = Library:Render("TextButton", {  
-			ClipsDescendants = true,
+			ClipsDescendants = false,
 			TextTransparency = 1,
 			ZIndex = Library.ZIndex,
 			Text = "",
 			Name = "Subtab",
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
-			--AutomaticSize = Enum.AutomaticSize.X,
+			AutomaticSize = Enum.AutomaticSize.X,
 			Size = UDim2.new(0, 0, 1, 0),
 		}) 
-
-		local UISizeConstraint = Library:Render("UISizeConstraint", {  
-			MinSize = Vector2.new(18, 0),
-			MaxSize = Vector2.new(10, 10),
-			Parent = Subtab
+		Library:Render("UIPadding", {  
+			PaddingRight = UDim.new(0, 4),
+			PaddingLeft = UDim.new(0, 4),
+			Parent = Subtab 
 		}) 
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 3),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent =Subtab
+		}) 
+
 		Library:Render("ImageLabel", {  
 			ScaleType = Enum.ScaleType.Fit,
 			ZIndex = Library.ZIndex,
@@ -858,12 +872,12 @@ Library.UI_Create ={
 			TextColor3 = "DarkText",
 			ZIndex = Library.ZIndex,
 			BorderSizePixel = 0,
-			Size = UDim2.new(0, 0, 0, 12),
+			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.new(0, 0, 1,0),
 			AnchorPoint = Vector2.new(0, 0.5),
-			Position = UDim2.new(0, 20, 0.5, 0),
 			BackgroundTransparency = 1,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			ClipsDescendants = true,
+			ClipsDescendants = false,
 			TextSize = 12,
 			Parent = Subtab 
 		}) 
@@ -1693,6 +1707,35 @@ Library.UI_Create ={
 		}) 
 		return NoclickDetector
 	end,
+	NewPickerButton = function()
+		local PickerButton = Library:Render("TextButton", {  
+			ZIndex = Library.ZIndex,
+			Name = "PickerButton",
+			Size = UDim2.new(0, 18, 1, 0),
+			Text = "",
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = PickerButton 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = PickerButton 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "InnerStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = PickerButton 
+		}) 
+		return PickerButton
+	end,
 	NewColorpickerContainer = function()
 		local ColorPickerContainer = Library:Render("Frame", {  
 			Size = UDim2.new(1, 0, 0, 15),
@@ -1719,33 +1762,9 @@ Library.UI_Create ={
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = PalletePickerContainer 
 		}) 
-		local PickerButton = Library:Render("TextButton", {  
-			ZIndex = Library.ZIndex,
-			Name = "PickerButton",
-			Size = UDim2.new(0, 18, 1, 0),
-			Text = "",
-			BorderSizePixel = 0,
-			AutoButtonColor = false,
-			Parent = PalletePickerContainer 
-		}) 
-		Library:Render("UICorner", {  
-			TopLeftRadius = UDim.new(0, 4),
-			TopRightRadius = UDim.new(0, 4),
-			BottomRightRadius = UDim.new(0, 4),
-			BottomLeftRadius = UDim.new(0, 4),
-			Parent = PickerButton 
-		}) 
-		Library:Render("UIStroke", {  
-			Color = "OuterStroke",
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Parent = PickerButton 
-		}) 
-		Library:Render("UIStroke", {  
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Color = "InnerStroke",
-			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
-			Parent = PickerButton 
-		}) 
+
+
+
 		Library:Render("TextLabel", {  
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 			Name = "ColorpickerTitle",
@@ -2060,8 +2079,6 @@ function Library:Window(Data: {any})
 	NewWindow["WindowHeader"]["GameTitle"].Text = Window.Game
 	
 	task.spawn(function() 
-		-- this was the fucking solution all along, i was trying to find a way to run this code before subtab animation during runtime because this piece of shit code would be delaying during runtime and fuck up subtab size until you click, thank god i was looking at task library and found this miracle
-		task.wait(0.3) -- sometimes the tabs size goes crazy
 		NewWindow["UIScale"].Scale = camera.ViewportSize.X /  1440	
 
 		Library:storeEvent(camera:GetPropertyChangedSignal('ViewportSize'),function()
@@ -2073,10 +2090,8 @@ function Library:Window(Data: {any})
 	
 	local NewResultContainer = Library.UI_Create:NewResultContainer()
 	NewResultContainer.Parent = NewWindow["WindowHeader"]["SearchFrame"]
-	
 
 	Window.Results = {}
-	
 	function Window:AddResult(Self: {string | thread}) 
 		if table.find(Window.Results,Self) then 	return end --table.remove(self.Results,table.find(self.Results, Self)) end
 		Window.Results[#Window.Results + 1] = Self
@@ -2112,7 +2127,11 @@ function Library:Window(Data: {any})
 				Resultframe:Destroy()
 			end
 		end
-end
+	end
+	function Window:BlurEnabled(bool:boolean)
+		Blur.Enabled = bool
+	end
+
 	function Window:HideHeader(bool: boolean)
 		self.WindowHeaderVis = bool
 		TweenService:Create(NewWindow["WindowHeader"]["HidetabbarButton"]["Arrow"], Library.TweenInfo, {Rotation =  bool and 0 or 180}):Play()
@@ -2163,7 +2182,7 @@ end
 					NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = ""
 				end
 				
-				if  Module.Dock.Identification ~= "Settings" and TextLowered ~= ""  then 
+				if  Module.Dock.Identification ~= "Settings" and Module.Identification ~= "ColorpickerinsideColorpicker" and TextLowered ~= ""  then 
 					if string.find(string.lower(Module.Title),string.lower(Module.Title):sub(string.len(TextLowered))) and not TextLowered:match("[^%w%s]")  and end_index == string.len(TextLowered) then
 						Window:AddResult(Module)
 					if NewResultContainer:FindFirstChildWhichIsA("Frame")  then
@@ -2212,7 +2231,7 @@ end
 
 function Library:Tab(Data) 
 	local Data = Data or {} 
-	local Tab = {window = self, firstsubtab = true, Title = Data.Title or Data.title or "Tab", Opened = false, Image = Data.Image or Data.image or nil, subtabs = Data.Subtabs or Data.subtabs or false,}
+	local Tab = {window = self,Filled=Data.Filled or Data.filled or false, Size = Data.Size or Data.size or  UDim2.new(0, 557, 0, 452), firstsubtab = true, Title = Data.Title or Data.title or "Tab", Opened = false, Image = Data.Image or Data.image or nil, subtabs = Data.Subtabs or Data.subtabs or false,}
 
 	local NewTabFrame = Library.UI_Create:NewTabFrame()
 	NewTabFrame.Parent = self.Container["WindowHeader"]["TabContainer"]
@@ -2221,6 +2240,7 @@ function Library:Tab(Data)
 	
 	local newWindowPage = Library.UI_Create:NewWindowPage()
 	newWindowPage.Parent = self.Container
+	newWindowPage.Size = Tab.Size
 	Tab.Windowpage = newWindowPage
 
 	Library:MakeDraggable(newWindowPage,newWindowPage,function(newPos)
@@ -2234,24 +2254,32 @@ function Library:Tab(Data)
 		Tab.Container = {NewSubPagesContainerInWindow,Subtabbar}
 		NewSubPagesContainerInWindow = nil -- garbage collection 
 	else
+		if Tab.Filled then 
+			local NewpagecontainerinsideWindow = Library.UI_Create:NewPage() 
+			NewpagecontainerinsideWindow.Parent = newWindowPage
+			NewpagecontainerinsideWindow["RIGHT"]:Destroy()
+			Tab.Container = {LEFT = NewpagecontainerinsideWindow["LEFT"]}
+
+			NewpagecontainerinsideWindow = nil -- garbage collection
+			else
 		local NewpagecontainerinsideWindow = Library.UI_Create:NewPage() 
 		NewpagecontainerinsideWindow.Parent = newWindowPage
 		Tab.Container = {LEFT = NewpagecontainerinsideWindow["LEFT"], RIGHT = NewpagecontainerinsideWindow["RIGHT"]}
 
 		NewpagecontainerinsideWindow = nil -- garbage collection
-
+		end
 	end
 
 	function Tab:Open(bool: boolean)
 		if self.window.SearchOpened then self.window:OpenSearch(false) end
 		newWindowPage.Visible = bool
 		self.Opened = bool
-		TweenService:Create(NewTabFrame, Library.TweenInfo, {BackgroundTransparency = bool and 0 or 1,Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99)  + 16 + 8, 0,22) or UDim2.new(0,28,0,22) }):Play() -- 18 = Icon size, 9 = spacing between icon 
+		TweenService:Create(NewTabFrame, Library.TweenInfo, { BackgroundTransparency = bool and 0 or 1 }):Play() 
 
 		TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
-		Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
-		TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText, Size = bool and UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99) ,1,0) or UDim2.new(0,0,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
-		Library:UpdateObject(NewTabFrame["TabTitle"], "TextColor3",   bool and Library.Theme.LightText or Library.Theme.DarkText)
+		Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3", bool and "Active" or "Inactive")
+		TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText}):Play() -- 18 = Icon size, 9 = spacing between icon 
+		Library:UpdateObject(NewTabFrame["TabTitle"], "TextColor3",   bool and "LightText" or "DarkText")
 
 	end
 	function Tab:Goto()
@@ -2269,20 +2297,16 @@ function Library:Tab(Data)
 
 	Library:storeEvent(NewTabFrame.MouseEnter,function()
 		if not Tab.Opened then 
-			TweenService:Create(NewTabFrame, Library.TweenInfo, { Size =UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.Container["UIScale"].Scale,0.99)  + 16+ 8 , 0,22) }):Play() 
-			TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, { Size =   UDim2.new(0,(NewTabFrame["TabTitle"].TextBounds.X + 4) / math.max(self.Container["UIScale"].Scale,0.99) ,1,0)}):Play()  
 
 			TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 =  Library.Theme.Active}):Play()
-			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  Library.Theme.Active )
+			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  "Active" )
 		end
 	end)
 	Library:storeEvent(NewTabFrame.MouseLeave,function()
 		if not Tab.Opened then 
-			TweenService:Create(NewTabFrame, Library.TweenInfo, { Size =UDim2.new(0,28,0,22)}):Play() -- 18 = Icon size, 9 = spacing between icon 
-			TweenService:Create(NewTabFrame["TabTitle"], Library.TweenInfo, { Size =   UDim2.new(0,0 ,1,0)}):Play() -- 18 = Icon size, 9 = spacing between icon 
 
 			TweenService:Create(NewTabFrame["TabImage"], Library.TweenInfo, {ImageColor3 =  Library.Theme.Inactive}):Play()
-			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  Library.Theme.Inactive )
+			Library:UpdateObject(NewTabFrame["TabImage"], "ImageColor3",  "Inactive" )
 		end
 	end)
 
@@ -2307,13 +2331,12 @@ function Tab:Subtab(Data)
 
 	if self.subtabs then   
 		local Data = Data or {}
-		local Subtab = {tab = self,Identification = "SubPage", window=self.window,issubtab = true,Title = Data.Title or Data.title or "Tab", Image = Data.Image or Data.image or nil, }
+		local Subtab = {tab = self,Identification = "SubPage", window=self.window,issubtab = true,Title = Data.Title or Data.title or "Tab", Image = Data.Image or Data.image or "", }
 
 		local NewSubTab = Library.UI_Create:NewSubTab()
 		NewSubTab.Parent = self.Container[2]
 		NewSubTab["SubtabTitle"].Text = Subtab.Title 
 		NewSubTab["SubtabImage"].Image = Subtab.Image 
-		NewSubTab["UISizeConstraint"].MaxSize = Vector2.new((NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99)  + 18 + 4,40 )
 		local NewSubTabPage = Library.UI_Create:NewSubTabPage()
 		NewSubTabPage.Parent = self.Container[1]
 		NewSubTabPage.Name = Subtab.Title
@@ -2325,11 +2348,10 @@ function Tab:Subtab(Data)
 Boy oh boy, this ahs got the most stressful part of making this ui, as i was making it, i realized that words would get cut off after i added
 auto scaling to my UI, than it took me 2 hours to research, experiment, and come with the final calculation. I HOPE I DONT FIND ANOTHER BUG AGAIN FROM THIS PART AND IF I DO I AM GOING TO CHANGE THE DESIGN
 ]]
-			TweenService:Create(NewSubTab, Library.TweenInfo, {Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.tab.window.Container["UIScale"].Scale,0.99)  + 18 + 4, 1,0) or UDim2.new(0,18,1,0) }):Play() -- 18 = Icon size, 9 = spacing between icon 
 			TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Accent or Library.Theme.Inactive}):Play()
-			Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3", bool and Library.Theme.Accent or Library.Theme.Inactive)
-			TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText,Size = bool and UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.tab.window.Container["UIScale"].Scale,0.99) ,1,0) or UDim2.new(0,0,0) }):Play()
-			Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3", bool and Library.Theme.Accent or Library.Theme.DarkText)
+			Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3", bool and "Accent" or "Inactive")
+			TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText}):Play()
+			Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3", bool and "Accent" or "DarkText")
 
 		end
 
@@ -2344,22 +2366,20 @@ auto scaling to my UI, than it took me 2 hours to research, experiment, and come
 		Library:storeEvent(NewSubTab.MouseEnter,function()
 
 			if  self.Container[1]["UIPageLayout"].CurrentPage.Name ~= Subtab.Title then 
-				TweenService:Create(NewSubTab, Library.TweenInfo, {Size = UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) / math.max(self.window.Container["UIScale"].Scale,0.99)  + 18 + 4 , 1,0)}):Play()
 				TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = Library.Theme.Active}):Play()
-				Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3",  Library.Theme.Active )
-				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.LightText,Size =  UDim2.new(0,(NewSubTab["SubtabTitle"].TextBounds.X + 4) /math.max(self.window.Container["UIScale"].Scale,0.99), 1,0,1,0) }):Play()
-				Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3",  Library.Theme.Active)
+				Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3",  "Active" )
+				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.LightText}):Play()
+				Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3",  "LightText")
 
 			end
 		end)
 		Library:storeEvent(NewSubTab.MouseLeave,function()
 			if  self.Container[1]["UIPageLayout"].CurrentPage.Name ~= Subtab.Title then 
 
-				TweenService:Create(NewSubTab, Library.TweenInfo, {Size = UDim2.new(0,18,1,0) }):Play()
 				TweenService:Create(NewSubTab["SubtabImage"], Library.TweenInfo, {ImageColor3 = Library.Theme.Inactive}):Play()
-				Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3",  Library.Theme.Inactive )
-				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText,Size =  UDim2.new(0,0,1,0) }):Play()
-				Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3",  Library.Theme.Inactive)
+				Library:UpdateObject(NewSubTab["SubtabImage"], "ImageColor3",  "Inactive" )
+				TweenService:Create(NewSubTab["SubtabTitle"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText}):Play()
+				Library:UpdateObject(NewSubTab["SubtabTitle"], "TextColor3",  "Inactive")
 
 			end
 		end)
@@ -2421,7 +2441,7 @@ function ModuleDock:Section_Page(Data)
 		function SectionTab:Open(bool)
 			self.Opened = bool
 			TweenService:Create(NewMultiSectionTab, Library.TweenInfo, {TextColor3 = bool and Library.Theme.Accent or Library.Theme.DarkText}):Play()
-			Library:UpdateObject(NewMultiSectionTab,"TextColor3", bool and Library.Theme.Accent or Library.Theme.DarkText)
+			Library:UpdateObject(NewMultiSectionTab,"TextColor3", bool and "Accent" or "DarkText")
 			TweenService:Create(NewMultiSectionTab["Indicator"], Library.TweenInfo, {BackgroundTransparency = bool and 0 or 1}):Play()
 			Page.Visible = bool
 		end
@@ -2489,10 +2509,10 @@ function ModuleDock:Keybind(Data)
 		self.Dock.Goto()
 		--> to catch the user attention <--
 		TweenService:Create(NewKeybindContainer["KeybindTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
-		Library:UpdateObject(NewKeybindContainer["KeybindTitle"],"TextColor3", Library.Theme.Accent )
+		Library:UpdateObject(NewKeybindContainer["KeybindTitle"],"TextColor3", "Accent" )
 		task.wait(2)
 		TweenService:Create(NewKeybindContainer["KeybindTitle"], Library.TweenInfo,{ TextColor3= Library.Theme.DarkText }):Play()
-		Library:UpdateObject(NewKeybindContainer["KeybindTitle"],"TextColor3",Library.Theme.DarkText )
+		Library:UpdateObject(NewKeybindContainer["KeybindTitle"],"TextColor3","DarkText" )
 	end
 	
 	function Keybind:CheckKey(tab, key)
@@ -2538,6 +2558,8 @@ function ModuleDock:Keybind(Data)
 		end
 	end
 	Keybind:Set(Keybind.Bind)
+	Keybind:SetMode(Keybind.Mode)
+
 	Library:storeEvent(UserInputService.InputBegan, function(Input) 
 		if (Input.KeyCode.Name == Keybind.Bind or Input.UserInputType.Name == Keybind.Bind) and not Focused then
 			if Keybind.Mode == "Always" then
@@ -2598,6 +2620,7 @@ function ModuleDock:Keybind(Data)
 	Library:storeEvent(	NewModeContainer["ModeContainer"]["Always"].MouseButton1Click, function()
 		Keybind:SetMode("Always")
 	end)
+	
 	Library.Elements[#Library.Elements + 1] = Keybind
 
 	return setmetatable(Keybind,Library.ModuleDock)
@@ -2627,22 +2650,22 @@ function ModuleDock:Dropdown(Data)
 				if  Option.Name == Value and  table.find(self.Value,Option.Name)and Option:IsA("TextButton") then 
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.Accent, Size = UDim2.new(1,-8,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,3,1,0)}):Play()
-					Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.LightText)
+					Library:UpdateObject(Option["OptionText"],"TextColor3","LightText")
 				elseif  Option.Name == Value and not table.find(self.Value,Option.Name) and Option:IsA("TextButton") then
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText, Size = UDim2.new(1,0,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,0,1,0)}):Play()
-					Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.DarkText)
+					Library:UpdateObject(Option["OptionText"],"TextColor3","DarkText")
 				end
 			else
 				if  Option.Name == Value  and Option:IsA("TextButton") then 
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.Accent, Size = UDim2.new(1,-8,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,3,1,0)}):Play()
-					Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.LightText)
+					Library:UpdateObject(Option["OptionText"],"TextColor3","LightText")
 
 				elseif  Option.Name ~= Value  and Option:IsA("TextButton") then
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText, Size = UDim2.new(1,0,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,0,1,0)}):Play()
-					Library:UpdateObject(Option["OptionText"],"TextColor3",Library.Theme.DarkText)
+					Library:UpdateObject(Option["OptionText"],"TextColor3","DarkText")
 				end			
 			end
 		end
@@ -2671,10 +2694,10 @@ function ModuleDock:Dropdown(Data)
 		self.Dock.Goto()
 		--> to catch the user attention <--
 		TweenService:Create(NewDropdown["DropdownTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
-		Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3", Library.Theme.Accent )
+		Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3", "Accent" )
 		task.wait(2)
 		TweenService:Create(NewDropdown["DropdownTitle"], Library.TweenInfo, {TextColor3 = Dropdown.Opened and Library.Theme.LightText or Library.Theme.DarkText }):Play()
-		Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3",Dropdown.Opened and Library.Theme.LightText or Library.Theme.DarkText )
+		Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3",Dropdown.Opened and "LightText" or "DarkText" )
 	end
 
 	local debounce = false
@@ -2692,7 +2715,7 @@ function ModuleDock:Dropdown(Data)
 
 			TweenService:Create(NewDropdown["DropdownBox"], Library.TweenInfo, {Size = bool and UDim2.new(1,0,0,23+80) or UDim2.new(1,0,0,23)}):Play()
 			TweenService:Create(NewDropdown["DropdownBox"]["Dropdownarrow"], Library.TweenInfo, {Rotation = bool and 180 or 0,ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
-			Library:UpdateObject(NewDropdown["DropdownTitle"],"ImageColor3",  bool and Library.Theme.Active or Library.Theme.Inactive)
+			Library:UpdateObject(NewDropdown["DropdownTitle"],"ImageColor3",  bool and "Active" or "Inactive")
 			TweenService:Create(NewDropdown["DropdownBox"]["DropdownSelected"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText}):Play()
 			Library:UpdateObject(NewDropdown["DropdownBox"]["DropdownSelected"],"TextColor3", bool and Library.Theme.LightText or Library.Theme.DarkText)
 			TweenService:Create(NewDropdown["DropdownTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText}):Play()
@@ -2746,19 +2769,19 @@ function ModuleDock:Toggle(Data)
 		self.Dock.Goto()
 		--> to catch the user attention <--
 		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
-		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", Library.Theme.Accent )
+		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", "Accent" )
 		task.wait(2)
 		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = Toggle.Value and Library.Theme.LightText or Library.Theme.DarkText }):Play()
-		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3",Toggle.Value and Library.Theme.LightText or Library.Theme.DarkText )
+		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3",Toggle.Value and "LightText" or "DarkText" )
 	end
 
 	function Toggle:Set(NewValue:boolean)
 		self.Value = NewValue 
 		self.Callback(NewValue) 
 		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = NewValue and Library.Theme.LightText or Library.Theme.DarkText}):Play()
-		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", NewValue and Library.Theme.LightText or Library.Theme.DarkText)
+		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", NewValue and "LightText" or "DarkText")
 		TweenService:Create(NewToggle["Checkbox"], Library.TweenInfo, {BackgroundColor3 = NewValue and Library.Theme.Accent or Library.Theme.DarkContrast}):Play()
-		Library:UpdateObject(NewToggle["ToggleTitle"],"BackgroundColor3", NewValue and Library.Theme.Accent or Library.Theme.DarkContrast)
+		Library:UpdateObject(NewToggle["Checkbox"],"BackgroundColor3", NewValue and "Accent" or "DarkContrast")
 		TweenService:Create(NewToggle["Checkbox"]["Checkmark"], Library.TweenInfo, {Size = NewValue and UDim2.new(0,15,0,15) or UDim2.new(0,0,0,0)}):Play()
 
 	end
@@ -2795,7 +2818,7 @@ function ModuleDock:Settings()
 
 			TweenService:Create(AntiClick, Library.TweenInfo, {Size = bool and UDim2.new(0,200,0,200) or UDim2.new(0,0,0,0)}):Play()
 			TweenService:Create(ToggleButton, Library.TweenInfo, {ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
-			Library:UpdateObject(ToggleButton,"ImageColor3", bool and Library.Theme.Active or Library.Theme.Inactive)
+			Library:UpdateObject(ToggleButton,"ImageColor3", bool and "Active" or "Inactive")
 			task.wait(0.4)
 			debounce = false 
 		end
@@ -2818,18 +2841,33 @@ function ModuleDock:Settings()
 end
 function ModuleDock:Colorpicker(Data)
 	local Data = Data or {}
-	local Colorpicker = {Identification = "Colorpicker",Dock = self,Opened = false,Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback or function() end }
+	local Colorpicker = {Identification = "Colorpicker",PaletteTitle = Data.PaletteTitle or Data.palettetitle or "",Dock = self,Opened = false,Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback or function() end }
 	Colorpicker.Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}
-	
+
 	local NewColorpickerContainer = Library.UI_Create:NewColorpickerContainer()
 	NewColorpickerContainer.Parent = self.Container
 	NewColorpickerContainer["ColorpickerTitle"].Text = Colorpicker.Title
 	
+	local NewPickerButton = Library.UI_Create:NewPickerButton()
+	NewPickerButton.Parent = NewColorpickerContainer["PalletePickerContainer"]
+	
 	local ColorPaletteContainer = Library.UI_Create:ColorPaletteContainer()
 	ColorPaletteContainer.Visible = false
 	ColorPaletteContainer.Parent = self.Windowpage
-	ColorPaletteContainer["PaletteTitle"].Text = Colorpicker.Title
+	ColorPaletteContainer["PaletteTitle"].Text = Colorpicker.PaletteTitle == "" and Colorpicker.Title or Colorpicker.PaletteTitle
+	
+	
 	local debounce = false
+	function Colorpicker:DirectTo()
+			if self.Dock.Identification == "Settings" then return end
+			self.Dock.Goto()
+			--> to catch the user attention <--
+		TweenService:Create(NewColorpickerContainer["ColorpickerTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
+		Library:UpdateObject(NewColorpickerContainer["ColorpickerTitle"],"TextColor3", "Accent" )
+			task.wait(2)
+		TweenService:Create(NewColorpickerContainer["ColorpickerTitle"], Library.TweenInfo, {TextColor3 = Colorpicker.Opened and Library.Theme.LightText or Library.Theme.DarkText }):Play()
+		Library:UpdateObject(NewColorpickerContainer["ColorpickerTitle"],"TextColor3",Colorpicker.Opened and w"LightText" or "DarkText" )
+	end
 	function Colorpicker:Open(bool:boolean)
 		if not debounce then 
 			debounce = true
@@ -2838,6 +2876,9 @@ function ModuleDock:Colorpicker(Data)
 				Library.Actives[#Library.Actives + 1] = self
 			end
 			self.Opened = bool
+			TweenService:Create(NewColorpickerContainer["ColorpickerTitle"], Library.TweenInfo, {TextColor3 = self.Opened and Library.Theme.LightText or Library.Theme.DarkText }):Play()
+			Library:UpdateObject(NewColorpickerContainer["ColorpickerTitle"],"TextColor3",self.Opened and "LightText" or "DarkText" )
+			
 			ColorPaletteContainer.Visible = bool
 			task.wait(0.2)
 			debounce = false
@@ -2862,8 +2903,8 @@ function ModuleDock:Colorpicker(Data)
 		ColorPaletteContainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 		ColorPaletteContainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 
-		NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
-		Colorpicker.Callback(NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
+		NewPickerButton.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		Colorpicker.Callback(NewPickerButton.BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
 	end
 	local function UpdateColorpicker()
 		Colorpicker.Color = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].Transparency)
@@ -2881,9 +2922,9 @@ function ModuleDock:Colorpicker(Data)
 		ColorPaletteContainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 		ColorPaletteContainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 		
-		NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		NewPickerButton.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 		
-		Colorpicker.Callback(NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
+		Colorpicker.Callback(NewPickerButton.BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
 	end
 	local function UpdateHue()
 		local MouseOnHuePallete = math.clamp(Mouse.X - ColorPaletteContainer["Palette"]["HueButton"].AbsolutePosition.X,0,ColorPaletteContainer["Palette"]["HueButton"].AbsoluteSize.X) / ColorPaletteContainer["Palette"]["HueButton"].AbsoluteSize.X
@@ -2905,7 +2946,14 @@ function ModuleDock:Colorpicker(Data)
 		Colorpicker.Colors.Transparency = MouseOntransparencyBar
 		UpdateColorpicker()
 	end
-	Library:storeEvent(NewColorpickerContainer["PalletePickerContainer"]["PickerButton"].MouseButton1Down,function()
+	Library:storeEvent(UserInputService.InputBegan,function(Input)
+		if Colorpicker.Opened and (Input.UserInputType == Enum.UserInputType.Touch or  Input.UserInputType == Enum.UserInputType.MouseButton1) then
+			if not Library:IsHovered(ColorPaletteContainer) then 
+				Colorpicker:Open(false)
+			end
+		end
+	end)
+	Library:storeEvent(NewPickerButton.MouseButton1Down,function()
 			Colorpicker:Open(not Colorpicker.Opened)
 			
 	end)
@@ -2926,7 +2974,130 @@ function ModuleDock:Colorpicker(Data)
 	end)
 	Colorpicker:Set(Colorpicker.Color,Colorpicker.transparency)
 	Library.Elements[#Library.Elements + 1] = Colorpicker
-	return setmetatable(Library.ModuleDock,Colorpicker)
+	function Colorpicker:Colorpicker(Data)
+		local Data = Data or {}
+		local Colorpicker = {Identification = "ColorpickerinsideColorpicker",Dock=self,Opened = false,Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Callback = Data.Callback or Data.callback or function() end }
+		Colorpicker.Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}
+
+		local NewPickerButtonInsideColorpicker = Library.UI_Create:NewPickerButton()
+		NewPickerButtonInsideColorpicker.Parent = NewColorpickerContainer["PalletePickerContainer"]
+
+		local NewColorpaletteinsidecolorcontainer = Library.UI_Create:ColorPaletteContainer()
+		NewColorpaletteinsidecolorcontainer.Visible = false
+		NewColorpaletteinsidecolorcontainer.Parent = self.Dock.Windowpage
+		NewColorpaletteinsidecolorcontainer["PaletteTitle"].Text = Colorpicker.Title
+
+		local debounce = false
+		function Colorpicker:Open(bool:boolean)
+			if not debounce then 
+				debounce = true
+				if bool then 
+					Library:CloseAllActives()
+					Library.Actives[#Library.Actives + 1] = self
+				end
+				self.Opened = bool
+				NewColorpaletteinsidecolorcontainer.Visible = bool
+				TweenService:Create(NewColorpickerContainer["ColorpickerTitle"], Library.TweenInfo, {TextColor3 = self.Opened and Library.Theme.LightText or Library.Theme.DarkText }):Play()
+				Library:UpdateObject(NewColorpickerContainer["ColorpickerTitle"],"TextColor3",self.Opened and "LightText" or "DarkText" )
+
+				task.wait(0.2)
+				debounce = false
+			end
+		end
+		function Colorpicker:Set(color: Color3, Transparency: number?)
+			local H,S,V = color:ToHSV()
+			self.Colors.Hue,self.Colors.Saturation,self.Colors.Brightness,self.Colors.Transparency = H,S,V,Transparency == nil  and self.Colors.transparency or Transparency
+
+			self.Color = Color3.fromHSV(H,S,V)
+			self.transparency = self.Colors.Transparency 
+
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["ActualTColor"].Color =ColorSequence.new{ColorSequenceKeypoint.new(0,  Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)),ColorSequenceKeypoint.new(1,Color3.fromRGB(122,122,122))}
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].Position =UDim2.new(Colorpicker.Colors.Transparency,0,0.5,0)
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundColor3 =Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency =Colorpicker.Colors.Transparency
+
+			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].Position =UDim2.new(Colorpicker.Colors.Hue,0,0.5,0)
+			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
+
+			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].Position =UDim2.new(Colorpicker.Colors.Saturation,0,1 -Colorpicker.Colors.Brightness,0)
+			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
+
+			NewPickerButtonInsideColorpicker.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			Colorpicker.Callback(NewPickerButtonInsideColorpicker.BackgroundColor3,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
+		end
+		local function UpdateColorpicker()
+			Colorpicker.Color = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].Transparency)
+			Colorpicker.transparency = Colorpicker.Colors.Transparency
+
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["ActualTColor"].Color =ColorSequence.new{ColorSequenceKeypoint.new(0,  Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)),ColorSequenceKeypoint.new(1,Color3.fromRGB(122,122,122))}
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].Position =UDim2.new(Colorpicker.Colors.Transparency,0,0.5,0)
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundColor3 =Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency =Colorpicker.Colors.Transparency
+
+			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].Position =UDim2.new(Colorpicker.Colors.Hue,0,0.5,0)
+			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
+
+			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].Position =UDim2.new(Colorpicker.Colors.Saturation,0,1 -Colorpicker.Colors.Brightness,0)
+			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"]["SVIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
+
+			NewPickerButtonInsideColorpicker.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+
+			Colorpicker.Callback(NewPickerButtonInsideColorpicker.BackgroundColor3,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
+		end
+		local function UpdateHue()
+			local MouseOnHuePallete = math.clamp(Mouse.X - NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"].AbsolutePosition.X,0,NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"].AbsoluteSize.X) / NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"].AbsoluteSize.X
+
+			Colorpicker.Colors.Hue = MouseOnHuePallete
+			UpdateColorpicker()
+		end
+		local function UpdateSV()
+			local MouseOnSaturationPallete = math.clamp(Mouse.X - NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].AbsolutePosition.X,0,NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.X) / NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.X
+			local MouseOnBrightnessPallete =  math.clamp(Mouse.Y - NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].AbsolutePosition.Y,0,NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.Y) / NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].AbsoluteSize.Y
+
+			Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness = MouseOnSaturationPallete, 1 - MouseOnBrightnessPallete
+			UpdateColorpicker()
+		end
+
+		local function UpdateTransparency()
+			local MouseOntransparencyBar = math.clamp(Mouse.X - NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"].AbsolutePosition.X,0,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"].AbsoluteSize.X) / NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"].AbsoluteSize.X
+
+			Colorpicker.Colors.Transparency = MouseOntransparencyBar
+			UpdateColorpicker()
+		end
+		Library:storeEvent(UserInputService.InputBegan,function(Input)
+			if Colorpicker.Opened and (Input.UserInputType == Enum.UserInputType.Touch or  Input.UserInputType == Enum.UserInputType.MouseButton1) then
+				if not Library:IsHovered(ColorPaletteContainer) then 
+					Colorpicker:Open(false)
+				end
+			end
+		end)
+		
+		Library:storeEvent(NewPickerButtonInsideColorpicker.MouseButton1Down,function()
+			Colorpicker:Open(not Colorpicker.Opened)
+
+		end)
+		Library:storeEvent(NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"].MouseButton1Down,function()
+			while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
+				UpdateHue()
+			end
+		end)
+		Library:storeEvent(NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"]["SVTextureBackground"].MouseButton1Down,function()
+			while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
+				UpdateSV()
+			end
+		end)
+		Library:storeEvent(NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"].MouseButton1Down,function()
+			while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
+				UpdateTransparency()
+			end
+		end)
+		Colorpicker:Set(Colorpicker.Color,Colorpicker.transparency)
+		Library.Elements[#Library.Elements + 1] = Colorpicker
+		return setmetatable(Colorpicker,Library.ModuleDock)
+	end
+	return setmetatable(Colorpicker,Library.ModuleDock)
 end
 function ModuleDock:Button(Data)
 	local Data = Data or {}
@@ -2948,10 +3119,10 @@ function ModuleDock:Button(Data)
 		self.Dock.Goto()
 		--> to catch the user attention <--
 		TweenService:Create(NewButton, Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
-		Library:UpdateObject(NewButton,"TextColor3", Library.Theme.Accent )
+		Library:UpdateObject(NewButton,"TextColor3", "Accent" )
 		task.wait(2)
 		TweenService:Create(NewButton, Library.TweenInfo, {TextColor3 = Library.Theme.LightText}):Play()
-		Library:UpdateObject(NewButton,"TextColor3",Library.Theme.LightText )
+		Library:UpdateObject(NewButton,"TextColor3","LightText" )
 	end
 	function Button:Button(Data)
 		local Data = Data or {}
@@ -2966,10 +3137,10 @@ function ModuleDock:Button(Data)
 			self.Dock.Goto()
 			--> to catch the user attention <--
 			TweenService:Create(NewButton, Library.TweenInfo, {TextColor3 =Library.Theme.Accent }):Play()
-			Library:UpdateObject(NewButton,"TextColor3", Library.Theme.Accent )
+			Library:UpdateObject(NewButton,"TextColor3", "Accent" )
 			task.wait(2)
 			TweenService:Create(NewButton, Library.TweenInfo, {TextColor3 = Library.Theme.LightText}):Play()
-			Library:UpdateObject(NewButton,"TextColor3",Library.Theme.LightText )
+			Library:UpdateObject(NewButton,"TextColor3","LightText" )
 		end
 		Library:storeEvent(NewButton.MouseButton1Down,function()
 			Button.Callback()
