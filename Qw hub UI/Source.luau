@@ -8,7 +8,10 @@ there is no need to feel ashamed to learn or copy code from here, I tried my bes
 some of my code to make it easier to understand. 
 
 * to add: search guide should also scroll to the element. I noticed that i did not add a element guide with scrolling implemented, so like it wont scroll to the element when you use search
+*to add: subtabs filled sections
+* to add: Colorpicker text boxes and use accent button
 
+*Bug: When the theme is changed, the option text color does not change alongside the change of theme but when clicked again, it finally changes. This is without combo on, have not tested if this occurs for combo but it might
 * Bug: tab auto size broke again???? WTF i swear i fixed it last time but something broke it again, i am so frustrated over this . Solution: remove it
 * Performance issue oberservation: 500 tabs, hovering the tabs causes FPS reduction from 60ish to 40ish. Thought: it might be from trying to calculate the textbound and Ui scale or too much connections (i doubt this because i know Roblox optimizes rbxscriptsignal)
 * Performance issue observation: 500 tabs, scrolling the tab bar causes FPS reduction from 60ish to 40ish. Thought: It could be from the amount of instances and tabs with threads and RBXSCRIPTSignal connections, and i see no one creating more than 10 tabs so i would ignore fixing this unless it gets serious
@@ -74,10 +77,12 @@ local Library = {
 		Name = "Inter",
 		TextStrokeTransparency = 0,
 	},
-
+	Images = {},
+	
 	Theme = {
 		Accent=Color3.fromRGB(121,0,0),
 		DarkContrast=Color3.fromRGB(7, 7, 7),
+		ModuleBackground = Color3.fromRGB(16,16,16),
 		LightContrast=Color3.fromRGB(11, 11, 11),
 		LightText= Color3.fromRGB(255,255,255),
 		DarkText=Color3.fromRGB(100,100,100),
@@ -85,11 +90,15 @@ local Library = {
 		OuterStroke = Color3.fromRGB(0,0,0),
 		Inactive = Color3.fromRGB(100,100,100),
 		Active = Color3.fromRGB(255,255,255),
+		LoadButton = Color3.fromRGB(25, 143, 25),
+		SaveButton = Color3.fromRGB(140, 140, 140),
+		DeleteButton = Color3.fromRGB(140, 0, 2),
 
 	},
 
-	TweenInfo = TweenInfo.new(0.46, Enum.EasingStyle.Sine,Enum.EasingDirection.Out),
+	TweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Linear,Enum.EasingDirection.In),
 	ZIndex = 3,
+
 	Device = "Desktop", --> "Desktop" or "Mobile"
 }
 if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
@@ -168,9 +177,9 @@ function Library:Render(ObjectType: string, Properties)
 	local Passed, Statement = pcall(function()
 		local Object = Instance.new(ObjectType)
 		for Property, Value in pairs(Properties) do
-			if string.find(Property,"Transparency") and typeof(Value) == "number" then
-				Library:UpdateObject(Object,Property,Value)
-			end
+		--	if string.find(Property,"Transparency") and typeof(Value) == "number" then
+			--	Library:UpdateObject(Object,Property,Value)
+			--end
 			if string.find(Property, "Color") and typeof(Value) == "string" and ObjectType ~= "UIGradient" then
 
 				local Theme = self.Theme[Value]
@@ -180,7 +189,6 @@ function Library:Render(ObjectType: string, Properties)
 			else
 				Object[Property] = Value
 			end
-
 		end
 
 		return Object 
@@ -189,7 +197,7 @@ function Library:Render(ObjectType: string, Properties)
 	if Passed then
 		return Statement
 	else
-		warn("Failed to render object: " .. tostring(ObjectType .. table.unpack(Properties)),
+		warn("Failed to render object: " .. tostring(ObjectType, Properties.Name),
 			tostring(Statement))
 		return nil
 	end
@@ -214,25 +222,33 @@ function Library:ChangeTheme(Theme: string, Color: Color3)
 		end
 	end
 end
---> this is so like 
+
 function Library:FindModuleByFlag(Needle)
 	-- search through the haystalk and isolate the needle
 end
+local NewConfig = {}
+NewConfig.__index = NewConfig
 --> i use this to list the configs for the dropdown and isolate the name so they won't show as the entire directory
 function Library:ListConfigFiles()
 	-- List the config files, remove the directory string and isolate the file name 
 end
 
-function Library:SaveConfig(Folder:string,Title:string,Description:string,Author:string)
+function Library:SaveConfigFile(Folder:string,Title:string,Description:string,Author:string) : NewConfig
 	if not isfolder(Folder) then makefolder(Folder) end
+	local config = setmetatable({},NewConfig)
 	for _, Element in pairs(Library.Elements) do 
 		if Element.Flag and Element.Flag ~= ""   then 
-
+			config[Element.Flag] = Library.Flags[Element.Flag]
 		end
 	end
+	if Description ~= "" then config.Description = Description end
+	config.Author = Author ~= "" and Author or "Unknown"
+	writefile(Folder .. "/Configs/" .. Title .. ".Json", HttpService:JSONEncode(config))
+	return config :: NewConfig
 end
 function Library:LoadConfig(Title)
 	-- Grab data from config file by decoding it and load the modules settings and when it comes to multi dropdown, keybind, and colorpicker i have to specifically decode them and load them different than usual because the values are different for some reason 
+		
 end
 function Library:CloseAllActives()
 
@@ -248,7 +264,9 @@ function Library:CloseAllActives()
 		end
 		
 end
-
+function Library:ImportImage()
+	
+end
 function Library:IsHovered(Object:Instance)
 	if Mouse.X >= Object.AbsolutePosition.X and Mouse.X <= Object.AbsolutePosition.X + Object.AbsoluteSize.X  and Mouse.Y >= Object.AbsolutePosition.Y and Mouse.Y <= Object.AbsolutePosition.Y + Object.AbsoluteSize.Y then 
 		return true
@@ -256,7 +274,7 @@ function Library:IsHovered(Object:Instance)
 		return false
 	end
 end
-function Library:ChangeFont(Font: Enum.Font| string) --> this part is not done and has not been tested yet <--
+function Library:ChangeFont(Font: Enum.Font| string,useCustomFont:boolean?) --> this part is not done and has not been tested yet <--
 	for Index, Value in pairs(self.InstanceStorage) do
 		if Value:IsA("FontFace") then
 			for Index2, _ in pairs(Value) do
@@ -269,7 +287,7 @@ function Library:ChangeFont(Font: Enum.Font| string) --> this part is not done a
 end
 
 
---> Object Backend creation <-- 
+--> Object  creation <-- 
 Library.UI_Create ={
 	NewWindow = function()
 		local ScreenGui = Library:Render("ScreenGui", {ZIndexBehavior = Enum.ZIndexBehavior.Global, ResetOnSpawn = false}) 
@@ -330,6 +348,8 @@ Library.UI_Create ={
 		local TabContainer = Library:Render("ScrollingFrame", {  
 			AutomaticCanvasSize = Enum.AutomaticSize.X,
 			ScrollBarThickness = 0,
+			ScrollBarImageTransparency = 1,
+			ClipsDescendants = true,
 			BackgroundColor3 = "LightContrast",
 			ZIndex = Library.ZIndex,
 			AnchorPoint = Vector2.new(0, 1),
@@ -655,7 +675,7 @@ Library.UI_Create ={
 		Library:Render("UIGradient", {  
 			Rotation = 127,
 			Color = ColorSequence.new{
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)),
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(20,20,20)),
 				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
 			},
 			Parent = Tabbuton 
@@ -710,10 +730,13 @@ Library.UI_Create ={
 		local Page = Library:Render("ScrollingFrame", {  
 			AutomaticCanvasSize = Enum.AutomaticSize.Y,
 			ScrollBarThickness = 0,
+			ScrollBarImageTransparency = 1,
 			Name = "Page",
 			Size = UDim2.new(1, 0, 1, -28),
 			ZIndex = Library.ZIndex,
 			BackgroundTransparency = 1,
+			ClipsDescendants = true,
+
 			ScrollingDirection = Enum.ScrollingDirection.Y,
 			Position = UDim2.new(0, 0, 0, 28),
 			BorderSizePixel = 0,
@@ -887,8 +910,10 @@ Library.UI_Create ={
 	NewSubTabPage = function()
 		local Page = Library:Render("ScrollingFrame", {  
 			Active = true,
+			ScrollBarImageTransparency = 1,
 			AutomaticCanvasSize = Enum.AutomaticSize.Y,
 			ScrollBarThickness = 0,
+			ClipsDescendants = true,
 			Name = "Page",
 			BackgroundTransparency = 1,
 			ZIndex = Library.ZIndex,
@@ -1114,7 +1139,7 @@ Library.UI_Create ={
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = page 
 		}) 
-		local UIPadding = Library:Render("UIPadding", {  
+		Library:Render("UIPadding", {  
 			PaddingRight = UDim.new(0, 11),
 			PaddingLeft = UDim.new(0, 11),
 			Parent = page
@@ -1124,7 +1149,7 @@ Library.UI_Create ={
 	NewWidgetContainer = function()
 		local ToggleWidgetButton = Library:Render("ImageButton", {  
 			Name = "ToggleWidgetButton",
-			Size = UDim2.new(0, 15, 0, 15),
+			Size = UDim2.new(0, 12, 0, 12),
 			ImageColor3 = "Inactive",
 			Image = "rbxassetid://95127553964880",
 			BackgroundTransparency = 1,
@@ -1145,6 +1170,8 @@ Library.UI_Create ={
 		local ModulesContainer = Library:Render("ScrollingFrame", {  
 			AutomaticCanvasSize = Enum.AutomaticSize.Y,
 			ScrollBarThickness = 0,
+			ClipsDescendants = true,
+			ScrollBarImageTransparency = 1,
 			BackgroundColor3 = "LightContrast",
 			Name = "ModulesContainer",
 			ScrollingDirection = Enum.ScrollingDirection.Y,
@@ -1208,7 +1235,7 @@ Library.UI_Create ={
 			Name = "Button",
 			BorderSizePixel = 0,
 			ZIndex = Library.ZIndex,
-			BackgroundColor3 = "LightContrast",
+			BackgroundColor3 = "ModuleBackground",
 			TextSize = 12,
 			Size = UDim2.new(0, 0, 1, 0),
 		}) 
@@ -1246,7 +1273,7 @@ Library.UI_Create ={
 			Name = "Checkbox",
 			Position = UDim2.new(0, 0, 0.5, 0),
 			ZIndex = Library.ZIndex,
-			BackgroundColor3="DarkContrast",
+			BackgroundColor3="ModuleBackground",
 			BorderSizePixel = 0,
 			Size = UDim2.new(0, 15, 0, 15),
 			Parent = ToggleContainer 
@@ -1334,8 +1361,9 @@ Library.UI_Create ={
 			Name = "DropdownBox",
 			Position = UDim2.new(0, 0, 0, 21),
 			ZIndex = Library.ZIndex,
-			BackgroundColor3 = "LightContrast",
+			BackgroundColor3 = "ModuleBackground",
 			BorderSizePixel = 0,
+			ClipsDescendants = true,
 			Size = UDim2.new(1, 0, 0, 23),
 			Parent = DropdownContainer 
 		}) 
@@ -1391,7 +1419,6 @@ Library.UI_Create ={
 			Position = UDim2.new(0, 0, 0, 27),
 			Size = UDim2.new(1, 0, 0, 80),
 			ZIndex = Library.ZIndex + 3,
-			TextSize = 14,
 			Parent = DropdownBox 
 		}) 
 		local OptionContainer = Library:Render("ScrollingFrame", {  
@@ -1399,6 +1426,8 @@ Library.UI_Create ={
 			ScrollBarImageTransparency = 1,
 			ScrollBarThickness = 0,
 			Name = "OptionContainer",
+			ClipsDescendants = true,
+
 			Size = UDim2.new(1, 0, 1, 0),
 			AutomaticCanvasSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
@@ -1415,6 +1444,7 @@ Library.UI_Create ={
 		}) 
 		Library:Render("UIPadding", {  
 			PaddingTop = UDim.new(0, 8),
+			PaddingBottom = UDim.new(0, 8),
 			Parent = OptionContainer 
 		}) 
 		Library:Render("Frame", {  
@@ -1521,7 +1551,7 @@ Library.UI_Create ={
 		local KeybindFrame = Library:Render("TextButton", {  
 			Text = "",
 			AnchorPoint = Vector2.new(1, 0.5),
-			BackgroundColor3="LightContrast",
+			BackgroundColor3= "ModuleBackground",
 			Name = "KeybindFrame",
 			Position = UDim2.new(1, -23, 0.5, 0),
 			AutomaticSize = Enum.AutomaticSize.X,
@@ -1825,8 +1855,150 @@ return ColorPickerContainer
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = Palette 
 		}) 
+		local ACtualSVCOlor = Library:Render("Frame", {  
+			--LayoutOrder = 1,
+			Name = "ACtualSVCOlor",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Size = UDim2.new(1, -4, 0, 100),
+			Parent = Palette 
+		}) 
+		local SVcolorWhitetexture = Library:Render("Frame", {  
+			Name = "SVcolorWhitetexture",
+			Size = UDim2.new(1, 0, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(255,255,255),
+			Parent = ACtualSVCOlor 
+		}) 
+		Library:Render("UIGradient", {  
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0),
+				NumberSequenceKeypoint.new(1, 1)
+			},
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+			},
+			Parent = SVcolorWhitetexture 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = SVcolorWhitetexture 
+		}) 
+		Library:Render("UICorner", {  
+			Parent = ACtualSVCOlor 
+		}) 
+		local SVIndicator = Library:Render("Frame", {  
+			Name = "SVIndicator",
+			ZIndex = Library.ZIndex + 1,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 8, 0, 8),
+			Parent = ACtualSVCOlor 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1,0),
+			TopRightRadius = UDim.new(1,0),
+			BottomRightRadius = UDim.new(1,0),
+			BottomLeftRadius = UDim.new(1,0),
+			Parent = SVIndicator 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = Color3.fromRGB(255,255,255),
+			Thickness = 2,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = SVIndicator 
+		}) 
+		local SVTextureBackground = Library:Render("TextButton", {  
+			BackgroundColor3 = Color3.fromRGB(255,255,255),
+			ZIndex = Library.ZIndex,
+			Name = "SVTextureBackground",
+			Size = UDim2.new(1, 0, 1, 0),
+			Text = "",
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Parent = ACtualSVCOlor 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 4),
+			TopRightRadius = UDim.new(0, 4),
+			BottomRightRadius = UDim.new(0, 4),
+			BottomLeftRadius = UDim.new(0, 4),
+			Parent = SVTextureBackground 
+		}) 
+		Library:Render("UIGradient", {  
+			Rotation = 270,
+			Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0, 0),
+				NumberSequenceKeypoint.new(1, 1)
+			},
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB())
+			},
+			Parent = SVTextureBackground 
+		}) 
+		local HueButton = Library:Render("TextButton", {  
+			--LayoutOrder = 2,
+			Text = "",
+			AutoButtonColor = false,
+			Name = "HueButton",
+			ZIndex = Library.ZIndex,
+			BackgroundColor3 = Color3.fromRGB(255,255,255),
+			Position = UDim2.new(0, 10, 1, -40),
+			Size = UDim2.new(1, -4, 0, 8),
+			BorderSizePixel = 0,
+			Parent = Palette 
+		}) 
+		Library:Render("UIGradient", {  
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
+				ColorSequenceKeypoint.new(0.17,  Color3.fromRGB(255,255,0)),
+				ColorSequenceKeypoint.new(0.33,  Color3.fromRGB(0,255,0)),
+				ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(0,255,255)),
+				ColorSequenceKeypoint.new(0.67,  Color3.fromRGB(0,0,255)),
+				ColorSequenceKeypoint.new(0.83,  Color3.fromRGB(255,0,255)),
+				ColorSequenceKeypoint.new(1,  Color3.fromRGB(255,0,0))
+			},
+			Parent = HueButton 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = HueButton 
+		}) 
+		local HIndicator = Library:Render("TextButton", {  
+			Text = "",
+			AutoButtonColor = false,
+			AnchorPoint = Vector2.new(0, 0.5),
+			Name = "HIndicator",
+			Position = UDim2.new(0, 0, 0.5, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 8, 0, 8),
+			Parent = HueButton 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1,0),
+			TopRightRadius = UDim.new(1,0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1,0),
+			Parent = HIndicator 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = Color3.fromRGB(255,255,255),
+			Thickness = 2,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = HIndicator 
+		}) 
+
 		local TransparencyButton = Library:Render("TextButton", {  
-			LayoutOrder = 3,
+		--	LayoutOrder = 3,
 			Size = UDim2.new(1, -4, 0, 8),
 			Name = "TransparencyButton",
 			Position = UDim2.new(0, 10, 1, -20),
@@ -1905,147 +2077,7 @@ return ColorPickerContainer
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 			Parent = TIndicator 
 		}) 
-		local HueButton = Library:Render("TextButton", {  
-			LayoutOrder = 2,
-			Text = "",
-			AutoButtonColor = false,
-			Name = "HueButton",
-			ZIndex = Library.ZIndex,
-			BackgroundColor3 = Color3.fromRGB(255,255,255),
-			Position = UDim2.new(0, 10, 1, -40),
-			Size = UDim2.new(1, -4, 0, 8),
-			BorderSizePixel = 0,
-			Parent = Palette 
-		}) 
-		Library:Render("UIGradient", {  
-			Color = ColorSequence.new{
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
-				ColorSequenceKeypoint.new(0.17,  Color3.fromRGB(255,255,0)),
-				ColorSequenceKeypoint.new(0.33,  Color3.fromRGB(0,255,0)),
-				ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(0,255,255)),
-				ColorSequenceKeypoint.new(0.67,  Color3.fromRGB(0,0,255)),
-				ColorSequenceKeypoint.new(0.83,  Color3.fromRGB(255,0,255)),
-				ColorSequenceKeypoint.new(1,  Color3.fromRGB(255,0,0))
-			},
-			Parent = HueButton 
-		}) 
-		Library:Render("UICorner", {  
-			TopLeftRadius = UDim.new(0, 6),
-			TopRightRadius = UDim.new(0, 6),
-			BottomRightRadius = UDim.new(0, 6),
-			BottomLeftRadius = UDim.new(0, 6),
-			Parent = HueButton 
-		}) 
-		local HIndicator = Library:Render("TextButton", {  
-			Text = "",
-			AutoButtonColor = false,
-			AnchorPoint = Vector2.new(0, 0.5),
-			Name = "HIndicator",
-			Position = UDim2.new(0, 0, 0.5, 0),
-			ZIndex = Library.ZIndex,
-			BorderSizePixel = 0,
-			Size = UDim2.new(0, 8, 0, 8),
-			Parent = HueButton 
-		}) 
-		Library:Render("UICorner", {  
-			TopLeftRadius = UDim.new(1,0),
-			TopRightRadius = UDim.new(1,0),
-			BottomRightRadius = UDim.new(1, 0),
-			BottomLeftRadius = UDim.new(1,0),
-			Parent = HIndicator 
-		}) 
-		Library:Render("UIStroke", {  
-			Color = Color3.fromRGB(255,255,255),
-			Thickness = 2,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Parent = HIndicator 
-		}) 
-		local ACtualSVCOlor = Library:Render("Frame", {  
-			LayoutOrder = 1,
-			Name = "ACtualSVCOlor",
-			ZIndex = Library.ZIndex,
-			BorderSizePixel = 0,
-			Size = UDim2.new(1, -4, 0, 100),
-			Parent = Palette 
-		}) 
-		local SVcolorWhitetexture = Library:Render("Frame", {  
-			Name = "SVcolorWhitetexture",
-			Size = UDim2.new(1, 0, 1, 0),
-			ZIndex = Library.ZIndex,
-			BorderSizePixel = 0,
-			BackgroundColor3 = Color3.fromRGB(255,255,255),
-			Parent = ACtualSVCOlor 
-		}) 
-		Library:Render("UIGradient", {  
-			Transparency = NumberSequence.new{
-				NumberSequenceKeypoint.new(0, 0),
-				NumberSequenceKeypoint.new(1, 1)
-			},
-			Color = ColorSequence.new{
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
-			},
-			Parent = SVcolorWhitetexture 
-		}) 
-		Library:Render("UICorner", {  
-			TopLeftRadius = UDim.new(0, 4),
-			TopRightRadius = UDim.new(0, 4),
-			BottomRightRadius = UDim.new(0, 4),
-			BottomLeftRadius = UDim.new(0, 4),
-			Parent = SVcolorWhitetexture 
-		}) 
-		Library:Render("UICorner", {  
-			Parent = ACtualSVCOlor 
-		}) 
-		local SVIndicator = Library:Render("Frame", {  
-			Name = "SVIndicator",
-			ZIndex = Library.ZIndex + 1,
-			BorderSizePixel = 0,
-			Size = UDim2.new(0, 8, 0, 8),
-			Parent = ACtualSVCOlor 
-		}) 
-		Library:Render("UICorner", {  
-			TopLeftRadius = UDim.new(1,0),
-			TopRightRadius = UDim.new(1,0),
-			BottomRightRadius = UDim.new(1,0),
-			BottomLeftRadius = UDim.new(1,0),
-			Parent = SVIndicator 
-		}) 
-		Library:Render("UIStroke", {  
-			Color = Color3.fromRGB(255,255,255),
-			Thickness = 2,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Parent = SVIndicator 
-		}) 
-		local SVTextureBackground = Library:Render("TextButton", {  
-			BackgroundColor3 = Color3.fromRGB(255,255,255),
-			ZIndex = Library.ZIndex,
-			Name = "SVTextureBackground",
-			Size = UDim2.new(1, 0, 1, 0),
-			Text = "",
-			BorderSizePixel = 0,
-			AutoButtonColor = false,
-			Parent = ACtualSVCOlor 
-		}) 
-	Library:Render("UICorner", {  
-			TopLeftRadius = UDim.new(0, 4),
-			TopRightRadius = UDim.new(0, 4),
-			BottomRightRadius = UDim.new(0, 4),
-			BottomLeftRadius = UDim.new(0, 4),
-			Parent = SVTextureBackground 
-		}) 
-		Library:Render("UIGradient", {  
-			Rotation = 270,
-			Transparency = NumberSequence.new{
-				NumberSequenceKeypoint.new(0, 0),
-				NumberSequenceKeypoint.new(1, 1)
-			},
-			Color = ColorSequence.new{
-				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB())
-			},
-			Parent = SVTextureBackground 
-		}) 
+
 		Library:Render("TextLabel", {  
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 			TextColor3 = "LightText",
@@ -2059,6 +2091,290 @@ return ColorPickerContainer
 			Parent = PaletteContainer 
 		}) 
 		return PaletteContainer
+	end,
+	NewconfigcontrollerFrame = function()
+		local ConfigControllerFrame = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 0, 0),
+			BorderSizePixel = 0,
+			Name = "ConfigControllerFrame",
+			ZIndex = Library.ZIndex,
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundColor3 = "LightContrast",
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 7),
+			TopRightRadius = UDim.new(0, 7),
+			BottomRightRadius = UDim.new(0, 7),
+			BottomLeftRadius = UDim.new(0, 7),
+			Parent = ConfigControllerFrame 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = ConfigControllerFrame 
+		}) 
+		Library:Render("TextLabel", {  
+			LayoutOrder = 2,
+			TextWrapped = true,
+			Name = "ConfigDescription",
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Text = "",
+			TextColor3 = "DarkText",
+			Size = UDim2.new(1, 0, 0, 0),
+			Position = UDim2.new(0, 11, 0, 34),
+			BorderSizePixel = 0,
+			RichText = true,
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			BackgroundColor3 = "LightText",
+			Parent = ConfigControllerFrame 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingTop = UDim.new(0, 12),
+			PaddingBottom = UDim.new(0, 14),
+			PaddingRight = UDim.new(0, 11),
+			PaddingLeft = UDim.new(0, 11),
+			Parent = ConfigControllerFrame 
+		}) 
+		Library:Render("UIListLayout", {  
+			Padding = UDim.new(0, 8),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = ConfigControllerFrame 
+		}) 
+		local ConfigcommandButtonsContainer = Library:Render("Frame", {  
+			LayoutOrder = 3,
+			Size = UDim2.new(1, 0, 0, 20),
+			BackgroundTransparency = 1,
+			Name = "ConfigcommandButtonsContainer",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			BackgroundColor3 = "LightText",
+			Parent = ConfigControllerFrame 
+		}) 
+		Library:Render("UIListLayout", {  
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			FillDirection = Enum.FillDirection.Horizontal,
+			Parent = ConfigcommandButtonsContainer 
+		}) 
+		Library:Render("ImageButton", {  
+			Image = "rbxassetid://83581130141351",
+			BackgroundTransparency = 1,
+			Name = "LoadButton",
+			ImageColor3 = "LoadButton",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 20, 0, 20),
+			Parent = ConfigcommandButtonsContainer 
+		}) 
+
+		Library:Render("ImageButton", {  
+			Image = "rbxassetid://98785971093258",
+			BackgroundTransparency = 1,
+			Name = "SaveButton",
+			ImageColor3 = "SaveButton",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 20, 0, 20),
+			Parent = ConfigcommandButtonsContainer 
+		}) 
+		Library:Render("ImageButton", {  
+			Image = "rbxassetid://84632957702765",
+			BackgroundTransparency = 1,
+			Name = "DeleteButton",
+			ImageColor3 = "DeleteButton",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Size = UDim2.new(0, 20, 0, 20),
+			Parent = ConfigcommandButtonsContainer 
+		}) 
+		local ConfigTitle = Library:Render("TextLabel", {  
+			LayoutOrder = 1,
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "LightText",
+			Text = "",
+			Name = "ConfigTitle",
+			Size = UDim2.new(1, 0, 0, 12),
+			Position = UDim2.new(0, 11, 0, 14),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			BorderSizePixel = 0,
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = ConfigControllerFrame 
+		}) 
+		local ConfigAuthor = Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			Name = "ConfigAuthor",
+			Text = "",
+			TextColor3 = "LightText",
+			Size = UDim2.new(0, 200, 0, 12),
+			AnchorPoint = Vector2.new(1, -0),
+			Position = UDim2.new(1, 0, 0, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Right,
+			BorderSizePixel = 0,
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = ConfigTitle 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			Parent = ConfigControllerFrame 
+		}) 
+	return ConfigControllerFrame
+	end,
+	NewTextContainer = function()
+		local TextContainer = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 0, 12),
+			Name = "TextContainer",
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			ZIndex = Library.ZIndex,
+			AutomaticSize = Enum.AutomaticSize.Y,
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "DarkText",
+			Name = "Paragraph",
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Size = UDim2.new(1, -18, 1, 0),
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = true,
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = TextContainer 
+		}) 
+		local ExtraModuleContainer = Library:Render("Frame", {  
+			AnchorPoint = Vector2.new(1, 0),
+			Name = "ExtraModuleContainer",
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, 0, 0, 0),
+			Size = UDim2.new(0, 12, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Parent = TextContainer 
+		}) 
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			Padding = UDim.new(0, 4),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = ExtraModuleContainer 
+		}) 
+		return TextContainer
+	end,
+	NewSliderContainer = function()
+		local SliderContainer = Library:Render("TextButton", {  
+			Size = UDim2.new(1, 0, 0, 29),
+			Text = "",
+			BackgroundTransparency = 1,
+			Name = "SliderContainer",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		local SliderBG = Library:Render("Frame", {  
+			AnchorPoint = Vector2.new(0, 1),
+			Name = "SliderBG",
+			Position = UDim2.new(0, 0, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			BackgroundColor3 = "ModuleBackground",
+			Size = UDim2.new(1, 0, 0, 8),
+			Parent = SliderContainer 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = SliderBG 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = SliderBG 
+		}) 
+		local SliderIndicator = Library:Render("Frame", {  
+			Name = "SliderIndicator",
+			Size = UDim2.new(0, 100, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			BackgroundColor3 = "Accent",
+			Parent = SliderBG 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 3),
+			BottomLeftRadius = UDim.new(0, 3),
+			Parent = SliderIndicator 
+		}) 
+		local Dot = Library:Render("Frame", {  
+			AnchorPoint = Vector2.new(1, 0.5),
+			Size = UDim2.new(0, 15, 0, 15),
+			Name = "Dot",
+			Position = UDim2.new(1, 0, 0.5, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			BackgroundColor3 = Color3.fromRGB(140,140,140),
+			Parent = SliderIndicator 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(1, 0),
+			TopRightRadius = UDim.new(1, 0),
+			BottomRightRadius = UDim.new(1, 0),
+			BottomLeftRadius = UDim.new(1, 0),
+			Parent = Dot 
+		}) 
+		Library:Render("UIGradient", {  
+			Rotation = -180,
+			Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, Color3.fromRGB()),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+			},
+			Parent = SliderIndicator 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			Parent = SliderBG 
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			TextColor3 = "DarkText",
+			Text = "SliderTitle",
+			Name = "SliderTitle",
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Size = UDim2.new(0, 100, 0, 12),
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = SliderContainer 
+		}) 
+		Library:Render("TextBox", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			Name = "SliderValueText",
+			TextColor3 = "DarkText",
+			Text = "",
+			AutomaticSize = Enum.AutomaticSize.X,
+			Size = UDim2.new(0, 0, 0, 12),
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, 0, 0, 0),
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Right,
+			BorderSizePixel = 0,
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = SliderContainer 
+		}) 
+return SliderContainer
 	end,
 }
 
@@ -2074,7 +2390,7 @@ function Library:Window(Data: {any})
 	local Window = {Title = Data.Title or Data.title,Game=Data.Game or Data.game,tabs={},SearchOpened=false}
 
 	local NewWindow,Blur = Library.UI_Create:NewWindow()
-	NewWindow.Parent =  localPlayer:WaitForChild("PlayerGui")-- game:GetService("CoreGui")
+	NewWindow.Parent =  gethui() --localPlayer:WaitForChild("PlayerGui")-- game:GetService("CoreGui")
 	NewWindow["WindowHeader"]["UiTitle"].Text = Window.Title
 	NewWindow["WindowHeader"]["GameTitle"].Text = Window.Game
 	
@@ -2165,10 +2481,7 @@ function Library:Window(Data: {any})
 			debounce = false
 		end
 	end
-	Library:storeEvent(NewWindow["WindowHeader"]["SearchToggleButton"].MouseButton1Down,function()
-		Window:OpenSearch(not Window.SearchOpened)
-		
-	end)
+
 	--> This part down here was harder than i expected but i somehow got lucky when i used string.len lol. Update: so many bugs and i am here stuck
 	Library:storeEvent(NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]:GetPropertyChangedSignal("Text"), function(TextIndex)
 		if Window.SearchOpened then 
@@ -2185,6 +2498,7 @@ function Library:Window(Data: {any})
 				if  Module.Dock.Identification ~= "Settings" and Module.Identification ~= "ColorpickerinsideColorpicker" and TextLowered ~= ""  then 
 					if string.find(string.lower(Module.Title),string.lower(Module.Title):sub(string.len(TextLowered))) and not TextLowered:match("[^%w%s]")  and end_index == string.len(TextLowered) then
 						Window:AddResult(Module)
+						print(Module.Title:gsub(string.lower(Module.Title):sub(string.len(TextLowered))," "))
 					if NewResultContainer:FindFirstChildWhichIsA("Frame")  then
 							NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text = Module.Title:gsub(string.sub(string.lower(Module.Title),string.len(TextLowered)  ), "") --! reminder: use string.format and remove the index letters by the search input
 					end
@@ -2198,21 +2512,25 @@ function Library:Window(Data: {any})
 				end
 			end
 	end)
+	
+	Library:storeEvent(NewWindow["WindowHeader"]["SearchToggleButton"].MouseButton1Down,function()
+		Window:OpenSearch(not Window.SearchOpened)
 
+	end)
+	
 	Library:storeEvent(UserInputService.InputBegan,function(Input,GPE)
 		if  GPE and Window.SearchOpened and  Input.KeyCode == Enum.KeyCode.Right then 
-			print("pressed")
 			
-			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text = NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text
+			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text = NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text .. NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text
 		end
 	end)
 
 	Library:storeEvent(NewWindow["WindowHeader"]["HidetabbarButton"].MouseButton1Down,function()
 		Window:HideHeader(not Window.WindowHeaderVis)
 	end)
+	
 	Library:MakeDraggable(NewWindow["WindowHeader"],NewWindow["WindowHeader"],function(newPos)
 		NewWindow["WindowHeader"].Position = newPos
-
 	end)
 	--> Cleaning up to prevent memory leaks <--
 	function Window:SelfDestruct()
@@ -2332,7 +2650,7 @@ function Tab:Subtab(Data)
 	if self.subtabs then   
 		local Data = Data or {}
 		local Subtab = {tab = self,Identification = "SubPage", window=self.window,issubtab = true,Title = Data.Title or Data.title or "Tab", Image = Data.Image or Data.image or "", }
-
+			
 		local NewSubTab = Library.UI_Create:NewSubTab()
 		NewSubTab.Parent = self.Container[2]
 		NewSubTab["SubtabTitle"].Text = Subtab.Title 
@@ -2420,6 +2738,7 @@ function Tab:Section(Data)
 		NewSectionFrame["SectionHeaderFrame"]["Sectiontitle"].Text = Section.Title
 
 		Section.Container = NewSectionFrame
+		
 		function Section:Goto()
 			Section.page:Goto()
 		end
@@ -2482,11 +2801,33 @@ function ModuleDock:Section_Page(Data)
 
 	end
 end
+function ModuleDock:NewConfig(Title: string, Description:string?, Author:string?) 
+	local Config = {}
+	local Newconfigcontrollerframe = Library.UI_Create:NewconfigcontrollerFrame()
+	Newconfigcontrollerframe.Parent = self.Container
+	Newconfigcontrollerframe["ConfigTitle"].Text = Title
+	Newconfigcontrollerframe["ConfigTitle"]["ConfigAuthor"].Text = Author ~= "" and Author or "Unknown"
+	if Description == "" then
+		Newconfigcontrollerframe["ConfigDescription"]:Destroy()
+	else 
+		Newconfigcontrollerframe["ConfigDescription"].Text = Description
+	end
+	Library:storeEvent(Newconfigcontrollerframe["ConfigcommandButtonsContainer"]["LoadButton"].MouseButton1Down,function()
+		
+	end)
+	Library:storeEvent(Newconfigcontrollerframe["ConfigcommandButtonsContainer"]["SaveButton"].MouseButton1Down,function()
+
+	end)
+	Library:storeEvent(Newconfigcontrollerframe["ConfigcommandButtonsContainer"]["DeleteButton"].MouseButton1Down,function()
+
+	end)
+	return setmetatable(Config,Library.ModuleDock)
+end
 function ModuleDock:Keybind(Data)
 	local Data = Data or {}
 	local Keybind = {Identification = "Keybind",Opened = false,Dock=self,Title = Data.Title or Data.title or "Keybind",Mode = Data.Mode or Data.mode or "Toggle", Bind = Data.Bind or Data.bind or "Q", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function() end}
 	if self.Identification ~= "Settings" then Keybind.PageInfo = self.PageInfo end
-
+	Keybind.Flag = Data.flag or Data.Flag or Keybind.Title
 	local Focused, Holding = false, false
 
 	
@@ -2526,7 +2867,7 @@ function ModuleDock:Keybind(Data)
 	function Keybind:Set(NewKey)
 		Focused = false
 		Keybind.Bind = NewKey
-		Library.Flags[Keybind.Title] = {["Bind"] = tostring(Keybind.Bind),["Mode"] = tostring(Keybind.Mode)}
+		Library.Flags[Keybind.Flag] = {["Bind"] = tostring(Keybind.Bind),["Mode"] = tostring(Keybind.Mode)}
 
 		if not Focused then
 			NewKeybindContainer["KeybindFrame"]["Bindingkeytext"].Text = Library.short_keybind_names[tostring(Keybind.Bind)]  or tostring(Keybind.Bind):upper()
@@ -2548,6 +2889,8 @@ function ModuleDock:Keybind(Data)
 
 	function Keybind:SetMode(NewMode:string)
 		self.Mode = NewMode
+		Library.Flags[Keybind.Flag] = {["Bind"] = tostring(Keybind.Bind),["Mode"] = tostring(Keybind.Mode)}
+
 		for _,Mode in pairs(NewModeContainer["ModeContainer"]:GetChildren()) do
 			if Mode.Name == NewMode and Mode:IsA("TextButton") then 
 				TweenService:Create(Mode,Library.TweenInfo,{BackgroundTransparency = 0}):Play()
@@ -2628,12 +2971,14 @@ end
 function ModuleDock:Dropdown(Data)
 	local Data = Data or {}
 	local Dropdown = {Dock = self,Opened = false,Combo = Data.Combo or Data.combo or false, Title = Data.Title or Data.title or "Dropdown", Value = Data.Value or Data.value or "" ,Options = Data.Options or Data.options or {"1","2"},Callback=Data.Callback or Data.callback or function() end }
+	Dropdown.Flag = Data.flag or Data.Flag or Dropdown.Title
 	if self.Identification ~= "Settings" then Dropdown.PageInfo = self.PageInfo end
 	local NewDropdown = Library.UI_Create:NewDropdown()
 	NewDropdown.Parent = self.Container
 	NewDropdown["DropdownTitle"].Text = Dropdown.Title
 
-	function Dropdown:SetValue(Value: string)
+	function Dropdown:Set(Value: string)
+		
 		if self.Combo then 
 			if table.find(self.Value,Value) then 
 				table.remove(self.Value,table.find(self.Value, Value))
@@ -2641,16 +2986,21 @@ function ModuleDock:Dropdown(Data)
 				self.Value[#self.Value + 1] = Value
 			end
 			NewDropdown["DropdownBox"]["DropdownSelected"].Text =  table.concat(self.Value, ", ")
-		elseif not Dropdown.Combo then
+			Library.Flags[self.Flag] = self.Value
+
+		elseif not self.Combo then
+			Library.Flags[self.Flag] = self.Value
+
 			self.Value = Value
 			NewDropdown["DropdownBox"]["DropdownSelected"].Text =  tostring(self.Value)
 		end 
+		
 		for _,Option in pairs(NewDropdown["DropdownBox"]["NoClickDetector"]["OptionContainer"]:GetChildren()) do 
-			if Dropdown.Combo then 
-				if  Option.Name == Value and  table.find(self.Value,Option.Name)and Option:IsA("TextButton") then 
+			if self.Combo then 
+				if  Option.Name == Value and  table.find(self.Value,Option.Name) and Option:IsA("TextButton") then 
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.Accent, Size = UDim2.new(1,-8,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,3,1,0)}):Play()
-					Library:UpdateObject(Option["OptionText"],"TextColor3","LightText")
+					Library:UpdateObject(Option["OptionText"],"TextColor3","Accent")
 				elseif  Option.Name == Value and not table.find(self.Value,Option.Name) and Option:IsA("TextButton") then
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText, Size = UDim2.new(1,0,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,0,1,0)}):Play()
@@ -2660,16 +3010,20 @@ function ModuleDock:Dropdown(Data)
 				if  Option.Name == Value  and Option:IsA("TextButton") then 
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.Accent, Size = UDim2.new(1,-8,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,3,1,0)}):Play()
-					Library:UpdateObject(Option["OptionText"],"TextColor3","LightText")
-
+					Library:UpdateObject(Option["OptionText"],"TextColor3","Accent")
+					print(`{Option.name} " "  {Library.InstanceStorage[Option["OptionText"]]["TextColor3"]}`)
 				elseif  Option.Name ~= Value  and Option:IsA("TextButton") then
+					
 					TweenService:Create(Option["OptionText"], Library.TweenInfo, {TextColor3 = Library.Theme.DarkText, Size = UDim2.new(1,0,1,0)}):Play()
 					TweenService:Create(Option["Indicator"], Library.TweenInfo, {Size = UDim2.new(0,0,1,0)}):Play()
 					Library:UpdateObject(Option["OptionText"],"TextColor3","DarkText")
+					print(`{Option.Name} " "  {Library.InstanceStorage[Option["OptionText"]]["TextColor3"]}`)
+
 				end			
 			end
 		end
 		self.Callback(self.Value)
+		
 	end
 
 	function Dropdown:NewOptions(Options: {string})
@@ -2682,7 +3036,7 @@ function ModuleDock:Dropdown(Data)
 				NewOption["OptionText"].Text = NewOptions
 
 				Library:storeEvent(NewOption.MouseButton1Down,function()
-					Dropdown:SetValue(NewOption.Name)
+					Dropdown:Set(NewOption.Name)
 				end)
 			end
 		end
@@ -2714,12 +3068,15 @@ function ModuleDock:Dropdown(Data)
 			NewDropdown["DropdownBox"]["Dropdownarrow"].ZIndex = bool and Library.ZIndex + 3 or Library.ZIndex
 
 			TweenService:Create(NewDropdown["DropdownBox"], Library.TweenInfo, {Size = bool and UDim2.new(1,0,0,23+80) or UDim2.new(1,0,0,23)}):Play()
+			
+			TweenService:Create(NewDropdown["DropdownBox"]["NoClickDetector"]["OptionContainer"], Library.TweenInfo, {Size = bool and UDim2.new(1,0,1,0) or UDim2.new(1,0,0,0)}):Play()
+
 			TweenService:Create(NewDropdown["DropdownBox"]["Dropdownarrow"], Library.TweenInfo, {Rotation = bool and 180 or 0,ImageColor3 = bool and Library.Theme.Active or Library.Theme.Inactive}):Play()
-			Library:UpdateObject(NewDropdown["DropdownTitle"],"ImageColor3",  bool and "Active" or "Inactive")
+			Library:UpdateObject(NewDropdown["DropdownBox"]["Dropdownarrow"],"ImageColor3",  bool and "Active" or "Inactive")
 			TweenService:Create(NewDropdown["DropdownBox"]["DropdownSelected"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText}):Play()
-			Library:UpdateObject(NewDropdown["DropdownBox"]["DropdownSelected"],"TextColor3", bool and Library.Theme.LightText or Library.Theme.DarkText)
+			Library:UpdateObject(NewDropdown["DropdownBox"]["DropdownSelected"],"TextColor3", bool and"LightText" or "DarkText")
 			TweenService:Create(NewDropdown["DropdownTitle"], Library.TweenInfo, {TextColor3 = bool and Library.Theme.LightText or Library.Theme.DarkText}):Play()
-			Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3", bool and Library.Theme.LightText or Library.Theme.DarkText)
+			Library:UpdateObject(NewDropdown["DropdownTitle"],"TextColor3", bool and "LightText" or "DarkText")
 			NewDropdown["DropdownBox"]["NoClickDetector"].Visible = bool
 
 
@@ -2741,14 +3098,14 @@ function ModuleDock:Dropdown(Data)
 
 	if Dropdown.Combo and Dropdown.Value == "" then 
 		Dropdown.Value = {}
-		Dropdown:SetValue(Dropdown.Options[1])
+		Dropdown:Set(Dropdown.Options[1])
 	elseif Dropdown.Combo and Dropdown.Value ~= "" then  
-		Dropdown:SetValue(Dropdown.Value)
+		Dropdown:Set(Dropdown.Value)
 	end
 	if  not Dropdown.Combo and Dropdown.Value == "" then
-		Dropdown:SetValue(Dropdown.Options[1])
+		Dropdown:Set(Dropdown.Options[1])
 	elseif not Dropdown.Combo and Dropdown.Value ~= "" then
-		Dropdown:SetValue(Dropdown.Value)
+		Dropdown:Set(Dropdown.Value)
 	end
 	Library.Elements[#Library.Elements + 1] = Dropdown
 	return setmetatable(Dropdown,Library.ModuleDock)
@@ -2756,6 +3113,7 @@ end
 function ModuleDock:Toggle(Data) 
 	local Data = Data or {}
 	local Toggle = {Identification = "Toggle",Dock = self,Title = Data.Title or Data.title or "", Value = Data.Value or Data.value or false, Callback = Data.Callback or Data.callback or function()end}
+	Toggle.Flag = Data.Flag or Data.flag or Toggle.Title
 	
 	if self.Identification ~= "Settings" then Toggle.PageInfo = self.PageInfo end
 
@@ -2783,7 +3141,7 @@ function ModuleDock:Toggle(Data)
 		TweenService:Create(NewToggle["Checkbox"], Library.TweenInfo, {BackgroundColor3 = NewValue and Library.Theme.Accent or Library.Theme.DarkContrast}):Play()
 		Library:UpdateObject(NewToggle["Checkbox"],"BackgroundColor3", NewValue and "Accent" or "DarkContrast")
 		TweenService:Create(NewToggle["Checkbox"]["Checkmark"], Library.TweenInfo, {Size = NewValue and UDim2.new(0,15,0,15) or UDim2.new(0,0,0,0)}):Play()
-
+		Library.Flags[Toggle.Flag] = self.Value
 	end
 
 	Library:storeEvent(NewToggle.MouseButton1Down,function()
@@ -2801,7 +3159,6 @@ function ModuleDock:Settings()
 	local ToggleButton,AntiClick = Library.UI_Create:NewWidgetContainer()
 
 	ToggleButton.Parent = self.Container[1]
-
 	AntiClick.Parent = self.Container[2]
 
 	local debounce = false --> to prevent settings closing when you click on it because the Auto close when not hover will just auto close when settings is clicked, it so i put a cooldown
@@ -2839,24 +3196,93 @@ function ModuleDock:Settings()
 	Settings.Container = AntiClick["ModulesContainer"]
 	return setmetatable(Settings,Library.ModuleDock)
 end
+function ModuleDock:Slider(Data)
+	local Data = Data or {}
+	local Slider = {Title = Data.Title or Data.title or "",Flag = Data.Flag or Data.flag or false, Unit = Data.Unit or Data.unit or "", Increment = Data.Increment or Data.increment or 1, Value = Data.value or Data.Value or 0, Min = Data.Minimum or Data.minimum or 0, Max = Data.Maximum or Data.maximum or 10,Callback = Data.callback or Data.Callback or function() end}
+	Slider.Increment = 1 / Slider.Increment
+	local NewSliderContainer = Library.UI_Create:NewSliderContainer()
+	NewSliderContainer["SliderTitle"].Text = Slider.Title
+	NewSliderContainer.Parent = self.Container
+	
+	function Slider:Set(Value: number)
+		self.value = Value
+		NewSliderContainer["SliderValueText"].Text = tostring(Value) .. self.Unit
+		local Value = (((Value - self.Min) * (self.Max - self.Min)) / (self.Max - self.Min)) + self.Min 
+		local percent = 1 - (self.Max - Value) / (self.Max- self.Min)
+		TweenService:Create(NewSliderContainer["SliderBG"]["SliderIndicator"], Library.TweenInfo, {Size = UDim2.new(percent, 0, 1, 0)}):Play()
+		self.Callback(Value)
+	end
+	
+	local function Update()
+		local MouseBound = math.clamp(Mouse.X - NewSliderContainer["SliderBG"]["SliderIndicator"].AbsolutePosition.X, 0, NewSliderContainer["SliderBG"].AbsoluteSize.X) / NewSliderContainer["SliderBG"].AbsoluteSize.X
+		local Svalue = math.floor((Slider.Min + (Slider.Max - Slider.Min) * MouseBound) * Slider.Increment) / Slider.Increment
+		Svalue = math.clamp(Svalue, Slider.Min, Slider.Max)
+		Slider:Set(Svalue)
+	end
+	local Pressing
+	Library:storeEvent(NewSliderContainer.MouseButton1Down,function()
+		while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
+			Update()			
+		end
+	end)
+	Library:storeEvent(NewSliderContainer["SliderValueText"].FocusLost,function()
+		if type(tonumber(NewSliderContainer["SliderValueText"].Text)) == "number" and tonumber(NewSliderContainer["SliderValueText"].Text) <= Slider.Max and tonumber(NewSliderContainer["SliderValueText"].Text) >= Slider.Min then 
+			Slider:Set(math.clamp(tonumber(NewSliderContainer["SliderValueText"].Text),Slider.Min,Slider.Max)) 
+		else 
+			Slider:Set(Slider.Value)
+		end
+	end)
+	
+	if Slider.Value >= Slider.Min and  Slider.Value <= Slider.Max then 
+
+		Slider:Set(Slider.Value)
+	else 
+		Slider:Set(Slider.Min)
+	end 
+	
+	return setmetatable(Slider,Library.ModuleDock)
+end
+function ModuleDock:Text(Data)
+	local Data = Data or {}
+	local Text = {Text = Data.Text or Data.text or "", ExtraModuleContainer = Data.AddModules or false}
+	
+	local NewTextcontainer = Library.UI_Create:NewTextContainer()
+	NewTextcontainer.Parent = self.Container
+	
+	if not Text.ExtraModuleContainer then 
+		NewTextcontainer["ExtraModuleContainer"]:Destroy()
+		NewTextcontainer["Paragraph"].Size = UDim2.new(1,0,1,0)
+	end
+	
+	function Text:UpdateText(newText:string) 
+		self.Text = newText
+		NewTextcontainer["Paragraph"].Text = self.Text
+	end
+	Text.Container =  {NewTextcontainer["ExtraModuleContainer"],self.Windowpage}
+
+	Text:UpdateText(Text.Text)
+	return setmetatable(Text,Library.ModuleDock)
+end
 function ModuleDock:Colorpicker(Data)
 	local Data = Data or {}
-	local Colorpicker = {Identification = "Colorpicker",PaletteTitle = Data.PaletteTitle or Data.palettetitle or "",Dock = self,Opened = false,Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil, Callback = Data.Callback or Data.callback or function() end }
-	Colorpicker.Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}
-
+	local Colorpicker = {Identification = "Colorpicker",PaletteTitle = Data.PaletteTitle or Data.palettetitle or "",Dock = self,Opened = false, Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Container = nil,Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}, Callback = Data.Callback or Data.callback or function() end }
+	if self.Identification ~= "Settings" then Colorpicker.PageInfo = self.PageInfo end
+	
+	Colorpicker.Flag = Data.flag or Data.Flag  or Colorpicker.Title
+	
 	local NewColorpickerContainer = Library.UI_Create:NewColorpickerContainer()
 	NewColorpickerContainer.Parent = self.Container
 	NewColorpickerContainer["ColorpickerTitle"].Text = Colorpicker.Title
 	
 	local NewPickerButton = Library.UI_Create:NewPickerButton()
 	NewPickerButton.Parent = NewColorpickerContainer["PalletePickerContainer"]
-	
+	Colorpicker.Container =  {NewColorpickerContainer["PalletePickerContainer"],self.Windowpage}
 	local ColorPaletteContainer = Library.UI_Create:ColorPaletteContainer()
 	ColorPaletteContainer.Visible = false
 	ColorPaletteContainer.Parent = self.Windowpage
 	ColorPaletteContainer["PaletteTitle"].Text = Colorpicker.PaletteTitle == "" and Colorpicker.Title or Colorpicker.PaletteTitle
 	
-	
+
 	local debounce = false
 	function Colorpicker:DirectTo()
 			if self.Dock.Identification == "Settings" then return end
@@ -2880,13 +3306,14 @@ function ModuleDock:Colorpicker(Data)
 			Library:UpdateObject(NewColorpickerContainer["ColorpickerTitle"],"TextColor3",self.Opened and "LightText" or "DarkText" )
 			
 			ColorPaletteContainer.Visible = bool
+
 			task.wait(0.2)
 			debounce = false
 		end
 	end
 	function Colorpicker:Set(color: Color3, Transparency: number?)
 		local H,S,V = color:ToHSV()
-		self.Colors.Hue,self.Colors.Saturation,self.Colors.Brightness,self.Colors.Transparency = H,S,V,Transparency == nil  and self.Colors.transparency or Transparency
+		self.Colors.Hue,self.Colors.Saturation,self.Colors.Brightness,self.Colors.Transparency = H,S,V,Transparency ~= nil  and Transparency or  self.Colors.Transparency 
 
 		self.Color = Color3.fromHSV(H,S,V)
 		self.transparency = self.Colors.Transparency 
@@ -2894,8 +3321,7 @@ function ModuleDock:Colorpicker(Data)
 		ColorPaletteContainer["Palette"]["TransparencyButton"]["ActualTColor"].Color =ColorSequence.new{ColorSequenceKeypoint.new(0,  Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)),ColorSequenceKeypoint.new(1,Color3.fromRGB(122,122,122))}
 		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].Position =UDim2.new(Colorpicker.Colors.Transparency,0,0.5,0)
 		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundColor3 =Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
-		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency =Colorpicker.Colors.Transparency
-
+		ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency = self.transparency 
 		ColorPaletteContainer["Palette"]["HueButton"]["HIndicator"].Position =UDim2.new(Colorpicker.Colors.Hue,0,0.5,0)
 		ColorPaletteContainer["Palette"]["HueButton"]["HIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 
@@ -2904,6 +3330,9 @@ function ModuleDock:Colorpicker(Data)
 		ColorPaletteContainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 
 		NewPickerButton.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+		
+		Library.Flags[self.Flag] = self.Colors
+
 		Colorpicker.Callback(NewPickerButton.BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
 	end
 	local function UpdateColorpicker()
@@ -2923,7 +3352,8 @@ function ModuleDock:Colorpicker(Data)
 		ColorPaletteContainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 		
 		NewPickerButton.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
-		
+		Library.Flags[Colorpicker.Flag] = Colorpicker.Colors
+
 		Colorpicker.Callback(NewPickerButton.BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
 	end
 	local function UpdateHue()
@@ -2972,12 +3402,18 @@ function ModuleDock:Colorpicker(Data)
 				UpdateTransparency()
 			end
 	end)
+	local ColorPalette = {Container = ColorPaletteContainer["Palette"],Identification = "Palette"}
+	ColorPalette = setmetatable(ColorPalette,Library.ModuleDock)
+	ColorPalette:Button({Title = "Use Accent",Callback = function()
+	Colorpicker:Set(Library.Theme.Accent)
+	end,})
 	Colorpicker:Set(Colorpicker.Color,Colorpicker.transparency)
 	Library.Elements[#Library.Elements + 1] = Colorpicker
 	function Colorpicker:Colorpicker(Data)
 		local Data = Data or {}
-		local Colorpicker = {Identification = "ColorpickerinsideColorpicker",Dock=self,Opened = false,Flag = Data.Flag or Data.flag or "", Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Callback = Data.Callback or Data.callback or function() end }
-		Colorpicker.Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}
+		local Colorpicker = {Identification = "ColorpickerinsideColorpicker",Dock=self,Opened = false,Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}, Callback = Data.Callback or Data.callback or function() end }
+		
+		Colorpicker.Flag = Data.flag or Data.Flag  or Colorpicker.Title
 
 		local NewPickerButtonInsideColorpicker = Library.UI_Create:NewPickerButton()
 		NewPickerButtonInsideColorpicker.Parent = NewColorpickerContainer["PalletePickerContainer"]
@@ -3006,7 +3442,7 @@ function ModuleDock:Colorpicker(Data)
 		end
 		function Colorpicker:Set(color: Color3, Transparency: number?)
 			local H,S,V = color:ToHSV()
-			self.Colors.Hue,self.Colors.Saturation,self.Colors.Brightness,self.Colors.Transparency = H,S,V,Transparency == nil  and self.Colors.transparency or Transparency
+			self.Colors.Hue,self.Colors.Saturation,self.Colors.Brightness,self.Colors.Transparency = H,S,V,Transparency == nil  and self.Colors.Transparency or Transparency
 
 			self.Color = Color3.fromHSV(H,S,V)
 			self.transparency = self.Colors.Transparency 
@@ -3014,8 +3450,9 @@ function ModuleDock:Colorpicker(Data)
 			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["ActualTColor"].Color =ColorSequence.new{ColorSequenceKeypoint.new(0,  Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)),ColorSequenceKeypoint.new(1,Color3.fromRGB(122,122,122))}
 			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].Position =UDim2.new(Colorpicker.Colors.Transparency,0,0.5,0)
 			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundColor3 =Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			if Transparency ~= nil then 
 			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency =Colorpicker.Colors.Transparency
-
+end
 			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].Position =UDim2.new(Colorpicker.Colors.Hue,0,0.5,0)
 			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 
@@ -3024,6 +3461,8 @@ function ModuleDock:Colorpicker(Data)
 			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 
 			NewPickerButtonInsideColorpicker.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			Library.Flags[Colorpicker.Flag] = self.Colors
+
 			Colorpicker.Callback(NewPickerButtonInsideColorpicker.BackgroundColor3,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
 		end
 		local function UpdateColorpicker()
@@ -3043,6 +3482,7 @@ function ModuleDock:Colorpicker(Data)
 			NewColorpaletteinsidecolorcontainer["Palette"]["ACtualSVCOlor"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 
 			NewPickerButtonInsideColorpicker.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
+			Library.Flags[Colorpicker.Flag] = Colorpicker.Colors
 
 			Colorpicker.Callback(NewPickerButtonInsideColorpicker.BackgroundColor3,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
 		end
@@ -3093,6 +3533,11 @@ function ModuleDock:Colorpicker(Data)
 				UpdateTransparency()
 			end
 		end)
+		local ColorPalette = {Container = NewColorpaletteinsidecolorcontainer["Palette"],Identification = "Palette"}
+		ColorPalette = setmetatable(ColorPalette,Library.ModuleDock)
+		ColorPalette:Button({Title = "Use Accent",Callback = function()
+			Colorpicker:Set(Library.Theme.Accent)
+		end,})
 		Colorpicker:Set(Colorpicker.Color,Colorpicker.transparency)
 		Library.Elements[#Library.Elements + 1] = Colorpicker
 		return setmetatable(Colorpicker,Library.ModuleDock)
@@ -3102,7 +3547,7 @@ end
 function ModuleDock:Button(Data)
 	local Data = Data or {}
 	local Button = {Identification="Button",Dock = self,Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback }
-	Button.PageInfo = string.format("Page: %s",self.page.Title or "")
+	if self.Identification ~= "Settings" and self.Identification ~= "Palette" then Button.PageInfo = string.format("Page: %s",self.page.Title or "") end
 
 	local NewButtonContainer = Library.UI_Create:NewButtonContainer()
 	NewButtonContainer.Parent = self.Container
@@ -3127,7 +3572,7 @@ function ModuleDock:Button(Data)
 	function Button:Button(Data)
 		local Data = Data or {}
 		local Button = {Dock = self.Dock,Title = Data.Title or Data.title or "Button", Callback = Data.Callback or Data.callback}
-		Button.PageInfo = string.format("Page: %s",self.Dock.page.Title or "")
+		if self.Identification ~= "Settings" or self.Identification ~= "Palette" then Button.PageInfo = string.format("Page: %s",self.Dock.page.Title or "") end
 
 		local NewButton =Library.UI_Create:NewButton()
 		NewButton.Parent = NewButtonContainer
