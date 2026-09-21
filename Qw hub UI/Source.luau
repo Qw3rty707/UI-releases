@@ -10,7 +10,18 @@ some of my code to make it easier to understand.
 * to add: search guide should also scroll to the element. I noticed that i did not add a element guide with scrolling implemented, so like it wont scroll to the element when you use search
 *to add: subtabs filled sections
 * to add: Colorpicker text boxes and use accent button
+* to add: Module lock (Inspired from Rayfield v2)
+* to add: warning 
+* to add: separator with custom spacing and optional text option (inspired from Rayfield v2)
+* to add: statistics modules (inspired from Rayfield v2)
+* to add: form window
+* to add: Pop up window
+* to add: notifications 
+* to add: slider dot active color and inactive color
+* to add: Search highlight 
+* fix: tab Title size and padding issues on sub tab image and sub tab title
 
+*Bug: this happened with preset theme and its happening with colorpicker hue textbox, Changing the hue by text does not change the dark text color theme of the textbox title but it changes if i use the color palette. This is a strange bug that makes me confused af 
 *Bug: When the theme is changed, the option text color does not change alongside the change of theme but when clicked again, it finally changes. This is without combo on, have not tested if this occurs for combo but it might
 * Bug: tab auto size broke again???? WTF i swear i fixed it last time but something broke it again, i am so frustrated over this . Solution: remove it
 * Performance issue oberservation: 500 tabs, hovering the tabs causes FPS reduction from 60ish to 40ish. Thought: it might be from trying to calculate the textbound and Ui scale or too much connections (i doubt this because i know Roblox optimizes rbxscriptsignal)
@@ -66,7 +77,7 @@ local Library = {
 		Enum.KeyCode.Right, Enum.KeyCode.Slash, Enum.KeyCode.Tab,
 		Enum.KeyCode.Backspace, Enum.KeyCode.Escape
 	},
-	Flags = {}, --> stores the modules 
+	Flags = {}, --> stores the modules flags (ids)
 	Tabs = {}, --> stores tabs
 	Elements = {},
 
@@ -649,7 +660,7 @@ Library.UI_Create ={
 		}) 
 
 		Library:Render("UIPadding", {  
-			PaddingRight = UDim.new(0, 4),
+			PaddingRight = UDim.new(0, 8),
 			PaddingLeft = UDim.new(0, 4),
 			Parent = Tabbuton 
 		}) 
@@ -690,7 +701,7 @@ Library.UI_Create ={
 			BackgroundTransparency = 1,
 			AutomaticSize = Enum.AutomaticSize.X,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			ClipsDescendants = true,
+			ClipsDescendants = false,
 			TextSize = 12,
 			Parent = Tabbuton 
 		}) 
@@ -1222,7 +1233,7 @@ Library.UI_Create ={
 			VerticalAlignment = Enum.VerticalAlignment.Center,
 			FillDirection = Enum.FillDirection.Horizontal,
 			HorizontalFlex = Enum.UIFlexAlignment.Fill,
-			Padding = UDim.new(0, 4),
+			Padding = UDim.new(0, 6),
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = ButtonsContainer 
 		}) 
@@ -1811,6 +1822,7 @@ Library.UI_Create ={
 return ColorPickerContainer
 	end,
 	ColorPaletteContainer = function()
+
 		local PaletteContainer = Library:Render("Frame", {  
 			Name = "PaletteContainer",
 			ZIndex = Library.ZIndex,
@@ -2376,6 +2388,97 @@ return ColorPickerContainer
 		}) 
 return SliderContainer
 	end,
+	TextboxContainer = function()
+		local TextboxContainer = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 0, 43),
+			BackgroundTransparency = 1,
+			Name = "TextboxContainer",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		Library:Render("UIListLayout", {  
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalFlex = Enum.UIFlexAlignment.Fill,
+			Padding = UDim.new(0, 6),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = TextboxContainer 
+		}) 
+		return TextboxContainer
+	end,
+	NewTextBoxHolder = function()
+		local TextBoxHolder = Library:Render("Frame", {  
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			Name = "TextBoxHolder",
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+		}) 
+		local TextboxFrame = Library:Render("Frame", {  
+			AnchorPoint = Vector2.new(0, 1),
+			Name = "TextboxFrame",
+			BackgroundColor3 = "ModuleBackground",
+			Position = UDim2.new(0, 0, 1, 0),
+			ZIndex = Library.ZIndex,
+			BorderSizePixel = 0,
+			Size = UDim2.new(1, 0, 0, 22),
+			Parent = TextBoxHolder 
+		}) 
+		Library:Render("UICorner", {  
+			TopLeftRadius = UDim.new(0, 6),
+			TopRightRadius = UDim.new(0, 6),
+			BottomRightRadius = UDim.new(0, 6),
+			BottomLeftRadius = UDim.new(0, 6),
+			Parent = TextboxFrame 
+		}) 
+		Library:Render("UIPadding", {  
+			PaddingRight = UDim.new(0, 8),
+			PaddingLeft = UDim.new(0, 8),
+			Parent = TextboxFrame 
+		}) 
+		 Library:Render("TextBox", {  
+			TextWrapped = true,
+			TextColor3 = "LightText",
+			Text = "",
+			Name = "Input",
+			ZIndex = Library.ZIndex,
+			Size = UDim2.new(1, 0, 1, 0),
+			BorderSizePixel = 0,
+			ClearTextOnFocus = false,
+			BackgroundTransparency = 1,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			PlaceholderText = "Fill in the form",
+			PlaceholderColor3 = "DarkText",
+			TextSize = 12,
+			Parent = TextboxFrame 
+		}) 
+		Library:Render("UIStroke", {  
+			Color = "OuterStroke",
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = TextboxFrame 
+		}) 
+		Library:Render("UIStroke", {  
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = "InnerStroke",
+			BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+			Parent = TextboxFrame 
+		}) 
+		Library:Render("TextLabel", {  
+			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+			Text = "",
+			Name = "TextboxTitle",
+			TextColor3 = "DarkText",
+			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Size = UDim2.new(0, 50, 0, 12),
+			ZIndex = Library.ZIndex,
+			TextSize = 12,
+			Parent = TextBoxHolder 
+		}) 
+return TextBoxHolder
+	end,
 }
 
 local Tab = Library.Tabs;
@@ -2390,7 +2493,7 @@ function Library:Window(Data: {any})
 	local Window = {Title = Data.Title or Data.title,Game=Data.Game or Data.game,tabs={},SearchOpened=false}
 
 	local NewWindow,Blur = Library.UI_Create:NewWindow()
-	NewWindow.Parent =  gethui() --localPlayer:WaitForChild("PlayerGui")-- game:GetService("CoreGui")
+	NewWindow.Parent =  localPlayer:WaitForChild("PlayerGui")-- game:GetService("CoreGui")
 	NewWindow["WindowHeader"]["UiTitle"].Text = Window.Title
 	NewWindow["WindowHeader"]["GameTitle"].Text = Window.Game
 	
@@ -2518,8 +2621,8 @@ function Library:Window(Data: {any})
 
 	end)
 	
-	Library:storeEvent(UserInputService.InputBegan,function(Input,GPE)
-		if  GPE and Window.SearchOpened and  Input.KeyCode == Enum.KeyCode.Right then 
+	Library:storeEvent(NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Focused,function(Input,GPE)
+		if Input.KeyCode == Enum.KeyCode.Right then 
 			
 			NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text = NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"].Text .. NewWindow["WindowHeader"]["SearchFrame"]["Inputbox"]["SuggestionAutoComplete"].Text
 		end
@@ -3135,13 +3238,13 @@ function ModuleDock:Toggle(Data)
 
 	function Toggle:Set(NewValue:boolean)
 		self.Value = NewValue 
-		self.Callback(NewValue) 
 		TweenService:Create(NewToggle["ToggleTitle"], Library.TweenInfo, {TextColor3 = NewValue and Library.Theme.LightText or Library.Theme.DarkText}):Play()
 		Library:UpdateObject(NewToggle["ToggleTitle"],"TextColor3", NewValue and "LightText" or "DarkText")
 		TweenService:Create(NewToggle["Checkbox"], Library.TweenInfo, {BackgroundColor3 = NewValue and Library.Theme.Accent or Library.Theme.DarkContrast}):Play()
 		Library:UpdateObject(NewToggle["Checkbox"],"BackgroundColor3", NewValue and "Accent" or "DarkContrast")
 		TweenService:Create(NewToggle["Checkbox"]["Checkmark"], Library.TweenInfo, {Size = NewValue and UDim2.new(0,15,0,15) or UDim2.new(0,0,0,0)}):Play()
 		Library.Flags[Toggle.Flag] = self.Value
+		self.Callback(self.Value) 
 	end
 
 	Library:storeEvent(NewToggle.MouseButton1Down,function()
@@ -3282,6 +3385,12 @@ function ModuleDock:Colorpicker(Data)
 	ColorPaletteContainer.Parent = self.Windowpage
 	ColorPaletteContainer["PaletteTitle"].Text = Colorpicker.PaletteTitle == "" and Colorpicker.Title or Colorpicker.PaletteTitle
 	
+	local ColorPalette = setmetatable({Container = ColorPaletteContainer["Palette"],Identification = "Palette"},Library.ModuleDock)
+	local AutoHueToggle = ColorPalette:Toggle({Title = "Auto Hue",Value = false, Flag = string.format("%s[%s]",Colorpicker.Title,"AutoHue") })
+	ColorPalette:Button({Title = "Use Accent",Callback = function()
+	Colorpicker:Set(Library.Theme.Accent)
+	end,})
+	local HextextInput = ColorPalette:Input({Title = "Hex"})
 
 	local debounce = false
 	function Colorpicker:DirectTo()
@@ -3332,6 +3441,7 @@ function ModuleDock:Colorpicker(Data)
 		NewPickerButton.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 		
 		Library.Flags[self.Flag] = self.Colors
+		HextextInput:Set(NewPickerButton.BackgroundColor3:ToHex(),true)
 
 		Colorpicker.Callback(NewPickerButton.BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
 	end
@@ -3353,6 +3463,7 @@ function ModuleDock:Colorpicker(Data)
 		
 		NewPickerButton.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 		Library.Flags[Colorpicker.Flag] = Colorpicker.Colors
+		HextextInput:Set(NewPickerButton.BackgroundColor3:ToHex(),true)
 
 		Colorpicker.Callback(NewPickerButton.BackgroundColor3,ColorPaletteContainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
 	end
@@ -3402,14 +3513,22 @@ function ModuleDock:Colorpicker(Data)
 				UpdateTransparency()
 			end
 	end)
-	local ColorPalette = {Container = ColorPaletteContainer["Palette"],Identification = "Palette"}
-	ColorPalette = setmetatable(ColorPalette,Library.ModuleDock)
-	ColorPalette:Button({Title = "Use Accent",Callback = function()
-	Colorpicker:Set(Library.Theme.Accent)
-	end,})
+	HextextInput.callback = function(Text)
+		if string.len(Text) <= 6 then 
+			Colorpicker:Set(Color3.fromHex(Text))
+		end
+	end
+	--> this part is bad, i will come back to it soon <-- 
+	AutoHueToggle.Callback = function(Bool)
+		while Bool do task.wait()
+			Colorpicker.Colors.Hue = 1 / os.time()
+			UpdateColorpicker()
+		end
+	end
 	Colorpicker:Set(Colorpicker.Color,Colorpicker.transparency)
 	Library.Elements[#Library.Elements + 1] = Colorpicker
-	function Colorpicker:Colorpicker(Data)
+	
+	 function Colorpicker:Colorpicker(Data)
 		local Data = Data or {}
 		local Colorpicker = {Identification = "ColorpickerinsideColorpicker",Dock=self,Opened = false,Title = Data.Title or Data.title or "", Color = Data.Color or Data.color or Color3.fromHSV(0,0,0), transparency = Data.Transparency or Data.transparency or 0, Colors = {Hue = 0, Saturation = 0, Brightness = 0,Transparency = 0}, Callback = Data.Callback or Data.callback or function() end }
 		
@@ -3422,7 +3541,15 @@ function ModuleDock:Colorpicker(Data)
 		NewColorpaletteinsidecolorcontainer.Visible = false
 		NewColorpaletteinsidecolorcontainer.Parent = self.Dock.Windowpage
 		NewColorpaletteinsidecolorcontainer["PaletteTitle"].Text = Colorpicker.Title
+		
+		local ColorPalette2nd = setmetatable({Container = NewColorpaletteinsidecolorcontainer["Palette"],Identification = "Palette"},Library.ModuleDock)
+		ColorPalette2nd:Toggle({Title = "Auto Hue",Value = false, Flag = string.format("%s[%s]",Colorpicker.Title,"AutoHue") })
 
+		ColorPalette2nd:Button({Title = "Use Accent",Callback = function()
+			Colorpicker:Set(Library.Theme.Accent)
+		end,})
+		local HextextInput2nd = ColorPalette2nd:Input({Title = "Hex"})
+		
 		local debounce = false
 		function Colorpicker:Open(bool:boolean)
 			if not debounce then 
@@ -3452,7 +3579,7 @@ function ModuleDock:Colorpicker(Data)
 			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundColor3 =Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 			if Transparency ~= nil then 
 			NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency =Colorpicker.Colors.Transparency
-end
+			end
 			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].Position =UDim2.new(Colorpicker.Colors.Hue,0,0.5,0)
 			NewColorpaletteinsidecolorcontainer["Palette"]["HueButton"]["HIndicator"].BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,1,1)
 
@@ -3462,7 +3589,7 @@ end
 
 			NewPickerButtonInsideColorpicker.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 			Library.Flags[Colorpicker.Flag] = self.Colors
-
+			HextextInput2nd:Set(color:ToHex(),true)
 			Colorpicker.Callback(NewPickerButtonInsideColorpicker.BackgroundColor3,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)		
 		end
 		local function UpdateColorpicker()
@@ -3483,6 +3610,7 @@ end
 
 			NewPickerButtonInsideColorpicker.BackgroundColor3 = Color3.fromHSV(Colorpicker.Colors.Hue,Colorpicker.Colors.Saturation,Colorpicker.Colors.Brightness)
 			Library.Flags[Colorpicker.Flag] = Colorpicker.Colors
+			HextextInput2nd:Set(NewPickerButtonInsideColorpicker.BackgroundColor3:ToHex(),true)
 
 			Colorpicker.Callback(NewPickerButtonInsideColorpicker.BackgroundColor3,NewColorpaletteinsidecolorcontainer["Palette"]["TransparencyButton"]["TIndicator"].BackgroundTransparency)
 		end
@@ -3508,7 +3636,7 @@ end
 		end
 		Library:storeEvent(UserInputService.InputBegan,function(Input)
 			if Colorpicker.Opened and (Input.UserInputType == Enum.UserInputType.Touch or  Input.UserInputType == Enum.UserInputType.MouseButton1) then
-				if not Library:IsHovered(ColorPaletteContainer) then 
+				if not Library:IsHovered(NewColorpaletteinsidecolorcontainer) then 
 					Colorpicker:Open(false)
 				end
 			end
@@ -3533,11 +3661,12 @@ end
 				UpdateTransparency()
 			end
 		end)
-		local ColorPalette = {Container = NewColorpaletteinsidecolorcontainer["Palette"],Identification = "Palette"}
-		ColorPalette = setmetatable(ColorPalette,Library.ModuleDock)
-		ColorPalette:Button({Title = "Use Accent",Callback = function()
-			Colorpicker:Set(Library.Theme.Accent)
-		end,})
+
+		HextextInput2nd.callback = function(Text)
+			if string.len(Text) <= 6 then 
+				Colorpicker:Set(Color3.fromHex(Text))
+				end
+		end
 		Colorpicker:Set(Colorpicker.Color,Colorpicker.transparency)
 		Library.Elements[#Library.Elements + 1] = Colorpicker
 		return setmetatable(Colorpicker,Library.ModuleDock)
@@ -3596,5 +3725,62 @@ function ModuleDock:Button(Data)
 	Library.Elements[#Library.Elements + 1] = Button
 
 	return setmetatable(Button,Library.ModuleDock)
+end
+function ModuleDock:Input(Data)
+	local Data = Data or {}
+	local input = {Title = Data.title or Data.Title or "",Value = Data.Input or Data.input or "", Placeholdertext = Data.Placeholder or Data.placeholder or "",Callback=Data.Callback or Data.callback or function() end}
+	
+	local NewInputContainer = Library.UI_Create.TextboxContainer()
+	NewInputContainer.Parent = self.Container
+	
+	local Newinput = Library.UI_Create.NewTextBoxHolder()
+	Newinput.Parent = NewInputContainer
+	
+	Newinput["TextboxFrame"]["Input"].PlaceholderText = input.Placeholdertext
+	Newinput["TextboxTitle"].Text = input.Title
+	
+	function input:Set(Text:string | number,ignorecallback:boolean?)
+		self.Value = tostring(Text)
+		Newinput["TextboxFrame"]["Input"].Text = self.Value
+		if not ignorecallback then self.Callback(self.Value) end
+	end
+	Library:storeEvent(Newinput["TextboxFrame"]["Input"].Focused,function()
+	
+		
+		TweenService:Create(Newinput["TextboxTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.LightText }):Play()
+		Library:UpdateObject(Newinput["TextboxTitle"],"TextColor3", "LightText" )
+	end)
+	Library:storeEvent(Newinput["TextboxFrame"]["Input"].FocusLost,function()
+		TweenService:Create(Newinput["TextboxTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.DarkText }):Play()
+		Library:UpdateObject(Newinput["TextboxTitle"],"TextColor3", "DarkText" )
+		input.Callback(Newinput["TextboxFrame"]["Input"].Text)
+	end)
+	function input:Input(Data)
+		local Data = Data or {}
+		local InputinsideInput = {Title = Data.title or Data.Title or "", Value = Data.Input or Data.input or "", Placeholdertext = Data.Placeholder or Data.placeholder or "",Callback=Data.Callback or Data.callback or function() end}
+
+
+		local Newinputinsideinputcontainer = Library.UI_Create.NewTextBoxHolder()
+		Newinputinsideinputcontainer.Parent = NewInputContainer
+
+		Newinputinsideinputcontainer["TextboxFrame"]["Input"].PlaceholderText = InputinsideInput.Placeholdertext
+		Newinputinsideinputcontainer["TextboxTitle"].Text = InputinsideInput.Title
+
+		function InputinsideInput:Set(Text:string | number)
+			self.Value = tostring(Text)
+			Newinputinsideinputcontainer["TextboxFrame"]["Input"].Text = self.Value
+			self.Callback(self.Value)
+		end
+		Library:storeEvent(Newinputinsideinputcontainer["TextboxFrame"]["Input"].Focused,function()
+			TweenService:Create(Newinputinsideinputcontainer["TextboxTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.LightText }):Play()
+			Library:UpdateObject(Newinputinsideinputcontainer["TextboxTitle"],"TextColor3", "LightText" )
+		end)
+		Library:storeEvent(Newinputinsideinputcontainer["TextboxFrame"]["Input"].FocusLost,function()
+			TweenService:Create(Newinputinsideinputcontainer["TextboxTitle"], Library.TweenInfo, {TextColor3 =Library.Theme.DarkText }):Play()
+			Library:UpdateObject(Newinputinsideinputcontainer["TextboxTitle"],"TextColor3", "DarkText" )
+			InputinsideInput.Callback(Newinputinsideinputcontainer["TextboxFrame"]["Input"].Text)
+		end)
+	end
+	return setmetatable(input,Library.ModuleDock)
 end
 return Library
